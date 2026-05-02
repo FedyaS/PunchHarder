@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 6
+names: ['bag', 'cross', 'hook', 'jab', 'no punch', 'uppercut']
+
+roboflow:
+  workspace: hongbo-wei
+  project: boxing-punch-classification
+  version: 1
+  license: Public Domain
+  url: https://universe.roboflow.com/hongbo-wei/boxing-punch-classification/dataset/1
