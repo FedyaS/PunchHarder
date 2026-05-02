@@ -1,25 +1,19 @@
-import { useState, useEffect } from 'react'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import MarketingHomePage from './pages/MarketingHomePage.jsx'
+import DashboardPage from './pages/DashboardPage.jsx'
+import LiveAnalysisPage from './pages/LiveAnalysisPage.jsx'
+import SessionSummaryPage from './pages/SessionSummaryPage.jsx'
 
-function App() {
-  const [message, setMessage] = useState('loading...')
-
-  useEffect(() => {
-    fetch('/api/ping')
-      .then((res) => res.json())
-      .then((data) => setMessage(data.message))
-      .catch(() => setMessage('failed to connect'))
-  }, [])
-
+export default function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-white mb-4">PunchHarder</h1>
-        <p className="text-lg text-gray-400">
-          Backend says: <span className="text-green-400 font-mono">{message}</span>
-        </p>
-      </div>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MarketingHomePage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/live" element={<LiveAnalysisPage />} />
+        <Route path="/session" element={<SessionSummaryPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
-
-export default App
