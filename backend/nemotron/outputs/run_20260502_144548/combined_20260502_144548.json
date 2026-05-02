@@ -1,0 +1,473 @@
+{
+  "generated_at": "20260502_144548",
+  "video_source": "test1.mp4",
+  "total_duration_ms": 30000,
+  "clip_duration_ms": 10000,
+  "num_clips": 3,
+  "total_tokens": {
+    "prompt_tokens": 2334,
+    "completion_tokens": 15324,
+    "total_tokens": 17658
+  },
+  "total_response_time_s": 65.6,
+  "clips": [
+    {
+      "clip_index": 0,
+      "clip_start_ms": 0,
+      "clip_end_ms": 10000,
+      "analysis": {
+        "punches": [
+          {
+            "type": "jab",
+            "confidence": 0.9,
+            "estimated_velocity": 70,
+            "estimated_power": 60,
+            "timestamp_ms": 1000
+          },
+          {
+            "type": "cross",
+            "confidence": 0.9,
+            "estimated_velocity": 80,
+            "estimated_power": 70,
+            "timestamp_ms": 1500
+          },
+          {
+            "type": "jab",
+            "confidence": 0.9,
+            "estimated_velocity": 70,
+            "estimated_power": 60,
+            "timestamp_ms": 2000
+          },
+          {
+            "type": "cross",
+            "confidence": 0.9,
+            "estimated_velocity": 80,
+            "estimated_power": 70,
+            "timestamp_ms": 2500
+          },
+          {
+            "type": "hook",
+            "confidence": 0.9,
+            "estimated_velocity": 75,
+            "estimated_power": 70,
+            "timestamp_ms": 3000
+          },
+          {
+            "type": "jab",
+            "confidence": 0.9,
+            "estimated_velocity": 70,
+            "estimated_power": 60,
+            "timestamp_ms": 3500
+          },
+          {
+            "type": "cross",
+            "confidence": 0.9,
+            "estimated_velocity": 80,
+            "estimated_power": 70,
+            "timestamp_ms": 4000
+          },
+          {
+            "type": "uppercut",
+            "confidence": 0.9,
+            "estimated_velocity": 85,
+            "estimated_power": 80,
+            "timestamp_ms": 4500
+          },
+          {
+            "type": "jab",
+            "confidence": 0.9,
+            "estimated_velocity": 70,
+            "estimated_power": 60,
+            "timestamp_ms": 5000
+          },
+          {
+            "type": "cross",
+            "confidence": 0.9,
+            "estimated_velocity": 80,
+            "estimated_power": 70,
+            "timestamp_ms": 5500
+          },
+          {
+            "type": "hook",
+            "confidence": 0.9,
+            "estimated_velocity": 75,
+            "estimated_power": 70,
+            "timestamp_ms": 6000
+          },
+          {
+            "type": "jab",
+            "confidence": 0.9,
+            "estimated_velocity": 70,
+            "estimated_power": 60,
+            "timestamp_ms": 6500
+          },
+          {
+            "type": "cross",
+            "confidence": 0.9,
+            "estimated_velocity": 80,
+            "estimated_power": 70,
+            "timestamp_ms": 7000
+          },
+          {
+            "type": "uppercut",
+            "confidence": 0.9,
+            "estimated_velocity": 85,
+            "estimated_power": 80,
+            "timestamp_ms": 7500
+          }
+        ],
+        "form_notes": {
+          "guard_discipline": 0.8,
+          "rhythm_consistency": 0.7,
+          "observations": "steady rhythm, occasional guard drop"
+        }
+      },
+      "tokens": {
+        "prompt_tokens": 569,
+        "completion_tokens": 1626,
+        "total_tokens": 2195
+      },
+      "response_time_s": 8.3
+    },
+    {
+      "clip_index": 1,
+      "clip_start_ms": 10000,
+      "clip_end_ms": 20000,
+      "analysis": {
+        "raw_text": "",
+        "parse_error": true
+      },
+      "tokens": {
+        "prompt_tokens": 735,
+        "completion_tokens": 8192,
+        "total_tokens": 8927
+      },
+      "response_time_s": 33.1
+    },
+    {
+      "clip_index": 2,
+      "clip_start_ms": 20000,
+      "clip_end_ms": 30000,
+      "analysis": {
+        "punches": [
+          {
+            "type": "jab",
+            "confidence": 0.92,
+            "estimated_velocity": 70,
+            "estimated_power": 60,
+            "timestamp_ms": 20000
+          },
+          {
+            "type": "cross",
+            "confidence": 0.88,
+            "estimated_velocity": 80,
+            "estimated_power": 70,
+            "timestamp_ms": 21000
+          },
+          {
+            "type": "jab",
+            "confidence": 0.9,
+            "estimated_velocity": 70,
+            "estimated_power": 60,
+            "timestamp_ms": 22000
+          },
+          {
+            "type": "hook",
+            "confidence": 0.85,
+            "estimated_velocity": 80,
+            "estimated_power": 75,
+            "timestamp_ms": 23000
+          },
+          {
+            "type": "uppercut",
+            "confidence": 0.8,
+            "estimated_velocity": 75,
+            "estimated_power": 80,
+            "timestamp_ms": 24000
+          },
+          {
+            "type": "cross",
+            "confidence": 0.88,
+            "estimated_velocity": 80,
+            "estimated_power": 70,
+            "timestamp_ms": 25000
+          },
+          {
+            "type": "jab",
+            "confidence": 0.91,
+            "estimated_velocity": 70,
+            "estimated_power": 60,
+            "timestamp_ms": 26000
+          },
+          {
+            "type": "hook",
+            "confidence": 0.86,
+            "estimated_velocity": 80,
+            "estimated_power": 75,
+            "timestamp_ms": 27000
+          }
+        ],
+        "form_notes": {
+          "guard_discipline": 0.85,
+          "rhythm_consistency": 0.75,
+          "observations": "maintains basic stance, occasional guard drop, moderate speed, clear punch mechanics"
+        }
+      },
+      "tokens": {
+        "prompt_tokens": 1030,
+        "completion_tokens": 5506,
+        "total_tokens": 6536
+      },
+      "response_time_s": 24.2
+    }
+  ],
+  "all_punches_combined": [
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 70,
+      "estimated_power": 60,
+      "timestamp_ms": 1000
+    },
+    {
+      "type": "cross",
+      "confidence": 0.9,
+      "estimated_velocity": 80,
+      "estimated_power": 70,
+      "timestamp_ms": 1500
+    },
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 70,
+      "estimated_power": 60,
+      "timestamp_ms": 2000
+    },
+    {
+      "type": "cross",
+      "confidence": 0.9,
+      "estimated_velocity": 80,
+      "estimated_power": 70,
+      "timestamp_ms": 2500
+    },
+    {
+      "type": "hook",
+      "confidence": 0.9,
+      "estimated_velocity": 75,
+      "estimated_power": 70,
+      "timestamp_ms": 3000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 70,
+      "estimated_power": 60,
+      "timestamp_ms": 3500
+    },
+    {
+      "type": "cross",
+      "confidence": 0.9,
+      "estimated_velocity": 80,
+      "estimated_power": 70,
+      "timestamp_ms": 4000
+    },
+    {
+      "type": "uppercut",
+      "confidence": 0.9,
+      "estimated_velocity": 85,
+      "estimated_power": 80,
+      "timestamp_ms": 4500
+    },
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 70,
+      "estimated_power": 60,
+      "timestamp_ms": 5000
+    },
+    {
+      "type": "cross",
+      "confidence": 0.9,
+      "estimated_velocity": 80,
+      "estimated_power": 70,
+      "timestamp_ms": 5500
+    },
+    {
+      "type": "hook",
+      "confidence": 0.9,
+      "estimated_velocity": 75,
+      "estimated_power": 70,
+      "timestamp_ms": 6000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 70,
+      "estimated_power": 60,
+      "timestamp_ms": 6500
+    },
+    {
+      "type": "cross",
+      "confidence": 0.9,
+      "estimated_velocity": 80,
+      "estimated_power": 70,
+      "timestamp_ms": 7000
+    },
+    {
+      "type": "uppercut",
+      "confidence": 0.9,
+      "estimated_velocity": 85,
+      "estimated_power": 80,
+      "timestamp_ms": 7500
+    },
+    {
+      "type": "jab",
+      "confidence": 0.92,
+      "estimated_velocity": 70,
+      "estimated_power": 60,
+      "timestamp_ms": 20000
+    },
+    {
+      "type": "cross",
+      "confidence": 0.88,
+      "estimated_velocity": 80,
+      "estimated_power": 70,
+      "timestamp_ms": 21000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 70,
+      "estimated_power": 60,
+      "timestamp_ms": 22000
+    },
+    {
+      "type": "hook",
+      "confidence": 0.85,
+      "estimated_velocity": 80,
+      "estimated_power": 75,
+      "timestamp_ms": 23000
+    },
+    {
+      "type": "uppercut",
+      "confidence": 0.8,
+      "estimated_velocity": 75,
+      "estimated_power": 80,
+      "timestamp_ms": 24000
+    },
+    {
+      "type": "cross",
+      "confidence": 0.88,
+      "estimated_velocity": 80,
+      "estimated_power": 70,
+      "timestamp_ms": 25000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.91,
+      "estimated_velocity": 70,
+      "estimated_power": 60,
+      "timestamp_ms": 26000
+    },
+    {
+      "type": "hook",
+      "confidence": 0.86,
+      "estimated_velocity": 80,
+      "estimated_power": 75,
+      "timestamp_ms": 27000
+    }
+  ],
+  "punch_summary": {
+    "total": 22,
+    "by_type": {
+      "jab": {
+        "count": 8,
+        "velocities": [
+          70,
+          70,
+          70,
+          70,
+          70,
+          70,
+          70,
+          70
+        ],
+        "powers": [
+          60,
+          60,
+          60,
+          60,
+          60,
+          60,
+          60,
+          60
+        ],
+        "avg_velocity": 70.0,
+        "max_velocity": 70,
+        "avg_power": 60.0,
+        "max_power": 60
+      },
+      "cross": {
+        "count": 7,
+        "velocities": [
+          80,
+          80,
+          80,
+          80,
+          80,
+          80,
+          80
+        ],
+        "powers": [
+          70,
+          70,
+          70,
+          70,
+          70,
+          70,
+          70
+        ],
+        "avg_velocity": 80.0,
+        "max_velocity": 80,
+        "avg_power": 70.0,
+        "max_power": 70
+      },
+      "hook": {
+        "count": 4,
+        "velocities": [
+          75,
+          75,
+          80,
+          80
+        ],
+        "powers": [
+          70,
+          70,
+          75,
+          75
+        ],
+        "avg_velocity": 77.5,
+        "max_velocity": 80,
+        "avg_power": 72.5,
+        "max_power": 75
+      },
+      "uppercut": {
+        "count": 3,
+        "velocities": [
+          85,
+          85,
+          75
+        ],
+        "powers": [
+          80,
+          80,
+          80
+        ],
+        "avg_velocity": 81.7,
+        "max_velocity": 85,
+        "avg_power": 80.0,
+        "max_power": 80
+      }
+    }
+  }
+}

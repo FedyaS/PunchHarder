@@ -1,0 +1,67 @@
+=== RESPONSE ===
+
+{
+  "punches": [
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 60.0,
+      "estimated_power": 30.0,
+      "timestamp_ms": 1000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.85,
+      "estimated_velocity": 55.0,
+      "estimated_power": 25.0,
+      "timestamp_ms": 1500
+    },
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 65.0,
+      "estimated_power": 35.0,
+      "timestamp_ms": 2000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.8,
+      "estimated_velocity": 50.0,
+      "estimated_power": 20.0,
+      "timestamp_ms": 2500
+    },
+    {
+      "type": "jab",
+      "confidence": 0.85,
+      "estimated_velocity": 55.0,
+      "estimated_power": 25.0,
+      "timestamp_ms": 3000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 60.0,
+      "estimated_power": 30.0,
+      "timestamp_ms": 3500
+    },
+    {
+      "type": "jab",
+      "confidence": 0.85,
+      "estimated_velocity": 55.0,
+      "estimated_power": 25.0,
+      "timestamp_ms": 4000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 60.0,
+      "estimated_power": 30.0,
+      "timestamp_ms": 4500
+    }
+  ],
+  "form_notes": {
+    "guard_discipline": 0.7,
+    "rhythm_consistency": 0.6,
+    "observations": "Consistent jab rhythm with moderate power; guard occasionally drops during movement."
+  }
+}

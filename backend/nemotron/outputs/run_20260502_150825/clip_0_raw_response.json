@@ -1,0 +1,38 @@
+{
+  "id": "chatcmpl-a424180ffd7d9010",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "\n{\n  \"punches\": [\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.9,\n      \"estimated_velocity\": 60.0,\n      \"estimated_power\": 30.0,\n      \"timestamp_ms\": 1000\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.85,\n      \"estimated_velocity\": 55.0,\n      \"estimated_power\": 28.0,\n      \"timestamp_ms\": 1200\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.8,\n      \"estimated_velocity\": 50.0,\n      \"estimated_power\": 25.0,\n      \"timestamp_ms\": 1400\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.75,\n      \"estimated_velocity\": 48.0,\n      \"estimated_power\": 24.0,\n      \"timestamp_ms\": 1600\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.7,\n      \"estimated_velocity\": 45.0,\n      \"estimated_power\": 22.0,\n      \"timestamp_ms\": 1800\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.65,\n      \"estimated_velocity\": 42.0,\n      \"estimated_power\": 20.0,\n      \"timestamp_ms\": 1900\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.6,\n      \"estimated_velocity\": 40.0,\n      \"estimated_power\": 18.0,\n      \"timestamp_ms\": 2100\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.55,\n      \"estimated_velocity\": 38.0,\n      \"estimated_power\": 17.0,\n      \"timestamp_ms\": 2300\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.5,\n      \"estimated_velocity\": 35.0,\n      \"estimated_power\": 15.0,\n      \"timestamp_ms\": 2500\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.45,\n      \"estimated_velocity\": 32.0,\n      \"estimated_power\": 13.0,\n      \"timestamp_ms\": 2700\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.4,\n      \"estimated_velocity\": 30.0,\n      \"estimated_power\": 12.0,\n      \"timestamp_ms\": 2900\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.35,\n      \"estimated_velocity\": 28.0,\n      \"estimated_power\": 11.0,\n      \"timestamp_ms\": 3100\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.3,\n      \"estimated_velocity\": 25.0,\n      \"estimated_power\": 10.0,\n      \"timestamp_ms\": 3300\n    }\n  ],\n  \"form_notes\": {\n    \"guard_discipline\": 0.8,\n    \"rhythm_consistency\": 0.7,\n    \"observations\": \"Consistent jabbing rhythm with slight decay in velocity and power over time; guard remains high throughout.\"\n  }\n}",
+        "refusal": null,
+        "role": "assistant",
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "tool_calls": [],
+        "reasoning": null,
+        "reasoning_content": null
+      },
+      "stop_reason": null,
+      "token_ids": null
+    }
+  ],
+  "created": 1777759705,
+  "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+  "object": "chat.completion",
+  "service_tier": null,
+  "system_fingerprint": null,
+  "usage": {
+    "completion_tokens": 805,
+    "prompt_tokens": 573,
+    "total_tokens": 1378,
+    "completion_tokens_details": null,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "kv_transfer_params": null
+}

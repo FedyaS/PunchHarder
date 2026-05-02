@@ -1,0 +1,222 @@
+{
+  "generated_at": "20260502_142830",
+  "video_source": "test1.mp4",
+  "total_duration_ms": 30000,
+  "clip_duration_ms": 10000,
+  "num_clips": 3,
+  "total_tokens": {
+    "prompt_tokens": 2233,
+    "completion_tokens": 5265,
+    "total_tokens": 7498
+  },
+  "total_response_time_s": 35.5,
+  "clips": [
+    {
+      "clip_index": 0,
+      "clip_start_ms": 0,
+      "clip_end_ms": 10000,
+      "analysis": {
+        "punches": [
+          {
+            "type": "jab",
+            "confidence": 0.85,
+            "estimated_velocity": 70,
+            "estimated_power": 60,
+            "timestamp_ms": 2000
+          },
+          {
+            "type": "cross",
+            "confidence": 0.8,
+            "estimated_velocity": 80,
+            "estimated_power": 70,
+            "timestamp_ms": 4000
+          }
+        ],
+        "form_notes": {
+          "guard_discipline": 0.9,
+          "rhythm_consistency": 0.7,
+          "observations": "Clear jab-cross combo with high guard, moderate speed."
+        }
+      },
+      "tokens": {
+        "prompt_tokens": 535,
+        "completion_tokens": 1747,
+        "total_tokens": 2282
+      },
+      "response_time_s": 13.8
+    },
+    {
+      "clip_index": 1,
+      "clip_start_ms": 10000,
+      "clip_end_ms": 20000,
+      "analysis": {
+        "raw_text": "{\n  \"punches\": [\n    { \"type\": \"jab\", \"confidence\": 0.85, \"estimated_velocity\": 60, \"estimated_power\": 50, \"timestamp_ms\": 1000 },\n    { \"type\": \"cross\", \"confidence\": 0.9, \"estimated_velocity\": 70, \"estimated_power\": ",
+        "parse_error": true
+      },
+      "tokens": {
+        "prompt_tokens": 701,
+        "completion_tokens": 2048,
+        "total_tokens": 2749
+      },
+      "response_time_s": 13.2
+    },
+    {
+      "clip_index": 2,
+      "clip_start_ms": 20000,
+      "clip_end_ms": 30000,
+      "analysis": {
+        "punches": [
+          {
+            "type": "jab",
+            "confidence": 0.8,
+            "estimated_velocity": 60,
+            "estimated_power": 55,
+            "timestamp_ms": 20500
+          },
+          {
+            "type": "cross",
+            "confidence": 0.9,
+            "estimated_velocity": 70,
+            "estimated_power": 65,
+            "timestamp_ms": 21500
+          },
+          {
+            "type": "jab",
+            "confidence": 0.85,
+            "estimated_velocity": 65,
+            "estimated_power": 60,
+            "timestamp_ms": 22500
+          },
+          {
+            "type": "hook",
+            "confidence": 0.8,
+            "estimated_velocity": 75,
+            "estimated_power": 70,
+            "timestamp_ms": 23500
+          },
+          {
+            "type": "cross",
+            "confidence": 0.85,
+            "estimated_velocity": 70,
+            "estimated_power": 65,
+            "timestamp_ms": 24500
+          }
+        ],
+        "form_notes": {
+          "guard_discipline": 0.7,
+          "rhythm_consistency": 0.6,
+          "observations": "Solid hand speed, high guard maintained, occasional guard drop for power punches, minimal footwork."
+        }
+      },
+      "tokens": {
+        "prompt_tokens": 997,
+        "completion_tokens": 1470,
+        "total_tokens": 2467
+      },
+      "response_time_s": 8.5
+    }
+  ],
+  "all_punches_combined": [
+    {
+      "type": "jab",
+      "confidence": 0.85,
+      "estimated_velocity": 70,
+      "estimated_power": 60,
+      "timestamp_ms": 2000
+    },
+    {
+      "type": "cross",
+      "confidence": 0.8,
+      "estimated_velocity": 80,
+      "estimated_power": 70,
+      "timestamp_ms": 4000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.8,
+      "estimated_velocity": 60,
+      "estimated_power": 55,
+      "timestamp_ms": 20500
+    },
+    {
+      "type": "cross",
+      "confidence": 0.9,
+      "estimated_velocity": 70,
+      "estimated_power": 65,
+      "timestamp_ms": 21500
+    },
+    {
+      "type": "jab",
+      "confidence": 0.85,
+      "estimated_velocity": 65,
+      "estimated_power": 60,
+      "timestamp_ms": 22500
+    },
+    {
+      "type": "hook",
+      "confidence": 0.8,
+      "estimated_velocity": 75,
+      "estimated_power": 70,
+      "timestamp_ms": 23500
+    },
+    {
+      "type": "cross",
+      "confidence": 0.85,
+      "estimated_velocity": 70,
+      "estimated_power": 65,
+      "timestamp_ms": 24500
+    }
+  ],
+  "punch_summary": {
+    "total": 7,
+    "by_type": {
+      "jab": {
+        "count": 3,
+        "velocities": [
+          70,
+          60,
+          65
+        ],
+        "powers": [
+          60,
+          55,
+          60
+        ],
+        "avg_velocity": 65.0,
+        "max_velocity": 70,
+        "avg_power": 58.3,
+        "max_power": 60
+      },
+      "cross": {
+        "count": 3,
+        "velocities": [
+          80,
+          70,
+          70
+        ],
+        "powers": [
+          70,
+          65,
+          65
+        ],
+        "avg_velocity": 73.3,
+        "max_velocity": 80,
+        "avg_power": 66.7,
+        "max_power": 70
+      },
+      "hook": {
+        "count": 1,
+        "velocities": [
+          75
+        ],
+        "powers": [
+          70
+        ],
+        "avg_velocity": 75.0,
+        "max_velocity": 75,
+        "avg_power": 70.0,
+        "max_power": 70
+      }
+    }
+  }
+}
