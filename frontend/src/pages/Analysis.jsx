@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 
 const PUNCH_COLORS = {
   jab: '#3b82f6',
@@ -209,8 +208,7 @@ export default function Analysis() {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-400 text-lg mb-4">{error}</p>
-          <Link to="/" className="text-blue-400 hover:text-blue-300">Back home</Link>
+          <p className="text-red-400 text-lg">{error}</p>
         </div>
       </div>
     )
@@ -231,7 +229,6 @@ export default function Analysis() {
 
         <div className="flex items-center justify-between mb-8">
           <div>
-            <Link to="/" className="text-gray-500 hover:text-gray-300 text-sm mb-2 inline-block">&larr; Back</Link>
             <h1 className="text-3xl font-bold">Round Analysis</h1>
             <p className="text-gray-500 text-sm mt-1">
               {data.total_duration_ms / 1000}s session &middot; {clips.length} clips &middot; {total_response_time_s}s API time &middot; {total_tokens.total_tokens} tokens

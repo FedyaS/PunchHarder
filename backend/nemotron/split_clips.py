@@ -20,10 +20,12 @@ for i in range(num_clips):
     out = os.path.join(OUTPUT_DIR, f"clip_{i}.mp4")
     subprocess.run([
         "ffmpeg", "-y",
-        "-i", INPUT_PATH,
         "-ss", str(start),
+        "-i", INPUT_PATH,
         "-t", str(CLIP_DURATION),
-        "-c", "copy",
+        "-c:v", "libx264",
+        "-preset", "fast",
+        "-an",
         out,
     ], check=True, capture_output=True)
     size_kb = os.path.getsize(out) / 1024
