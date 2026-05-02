@@ -9,6 +9,7 @@
 
 .animate-punch-flash {
   animation: punch-flash 0.5s ease-out;
+}
 @theme {
   --color-tertiary-fixed-dim: #c8c6c5;
   --color-tertiary-fixed: #e5e2e1;
