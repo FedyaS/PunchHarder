@@ -104,7 +104,7 @@ def analyze_clip(client: OpenAI, clip_path: str, clip_index: int, clip_start_s: 
     response = client.chat.completions.create(
         model=MODEL,
         messages=[
-            {"role": "system", "content": "You are a boxing form analyst. Return only valid JSON."},
+            {"role": "system", "content": "You are a boxing form analyst. Return ONLY valid JSON. No explanations, no markdown, no extra text."},
             {"role": "user", "content": [
                 {"type": "text", "text": prompt},
                 {"type": "video_url", "video_url": {"url": video_b64}},
@@ -112,7 +112,10 @@ def analyze_clip(client: OpenAI, clip_path: str, clip_index: int, clip_start_s: 
         ],
         temperature=0.2,
         max_tokens=4096,
-        extra_body={"enable_thinking": False, "top_k": 1},
+        extra_body={
+            "chat_template_kwargs": {"enable_thinking": False},
+            "top_k": 1,
+        },
     )
 
     elapsed_s = time.time() - t_start

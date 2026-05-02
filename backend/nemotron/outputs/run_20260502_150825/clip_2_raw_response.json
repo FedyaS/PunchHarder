@@ -1,0 +1,38 @@
+{
+  "id": "chatcmpl-ad9100f51f7c1d11",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "\n{\n  \"punches\": [\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.9,\n      \"estimated_velocity\": 60.0,\n      \"estimated_power\": 30.0,\n      \"timestamp_ms\": 1000\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.85,\n      \"estimated_velocity\": 55.0,\n      \"estimated_power\": 25.0,\n      \"timestamp_ms\": 1500\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.9,\n      \"estimated_velocity\": 65.0,\n      \"estimated_power\": 35.0,\n      \"timestamp_ms\": 2000\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.8,\n      \"estimated_velocity\": 50.0,\n      \"estimated_power\": 20.0,\n      \"timestamp_ms\": 2500\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.85,\n      \"estimated_velocity\": 55.0,\n      \"estimated_power\": 25.0,\n      \"timestamp_ms\": 3000\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.9,\n      \"estimated_velocity\": 60.0,\n      \"estimated_power\": 30.0,\n      \"timestamp_ms\": 3500\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.85,\n      \"estimated_velocity\": 55.0,\n      \"estimated_power\": 25.0,\n      \"timestamp_ms\": 4000\n    },\n    {\n      \"type\": \"jab\",\n      \"confidence\": 0.9,\n      \"estimated_velocity\": 60.0,\n      \"estimated_power\": 30.0,\n      \"timestamp_ms\": 4500\n    }\n  ],\n  \"form_notes\": {\n    \"guard_discipline\": 0.7,\n    \"rhythm_consistency\": 0.6,\n    \"observations\": \"Consistent jab rhythm with moderate power; guard occasionally drops during movement.\"\n  }\n}",
+        "refusal": null,
+        "role": "assistant",
+        "annotations": null,
+        "audio": null,
+        "function_call": null,
+        "tool_calls": [],
+        "reasoning": null,
+        "reasoning_content": null
+      },
+      "stop_reason": null,
+      "token_ids": null
+    }
+  ],
+  "created": 1777759733,
+  "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+  "object": "chat.completion",
+  "service_tier": null,
+  "system_fingerprint": null,
+  "usage": {
+    "completion_tokens": 516,
+    "prompt_tokens": 1034,
+    "total_tokens": 1550,
+    "completion_tokens_details": null,
+    "prompt_tokens_details": null
+  },
+  "prompt_logprobs": null,
+  "prompt_token_ids": null,
+  "kv_transfer_params": null
+}
