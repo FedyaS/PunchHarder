@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision'
+import { DrawingUtils, FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision'
 
 const MEDIAPIPE_VERSION = '0.10.35'
 const WASM_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`
 const MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task'
 
-export function usePoseLandmarker({ enabled, videoRef }) {
+export function usePoseLandmarker({ canvasRef, enabled, videoRef }) {
   const animationFrameRef = useRef(null)
+  const drawingUtilsRef = useRef(null)
   const landmarkerRef = useRef(null)
   const lastLogTimeRef = useRef(0)
   const lastVideoTimeRef = useRef(-1)
@@ -37,11 +38,58 @@ export function usePoseLandmarker({ enabled, videoRef }) {
       return landmarker
     }
 
+    function clearCanvas() {
+      const canvas = canvasRef.current
+      const context = canvas?.getContext('2d')
+
+      if (canvas && context) {
+        context.clearRect(0, 0, canvas.width, canvas.height)
+      }
+    }
+
+    function drawPoseOverlay(video, landmarks) {
+      const canvas = canvasRef.current
+      const context = canvas?.getContext('2d')
+
+      if (!canvas || !context || video.videoWidth === 0 || video.videoHeight === 0) {
+        return
+      }
+
+      if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+        drawingUtilsRef.current = new DrawingUtils(context)
+      }
+
+      const drawingUtils = drawingUtilsRef.current ?? new DrawingUtils(context)
+      drawingUtilsRef.current = drawingUtils
+
+      context.clearRect(0, 0, canvas.width, canvas.height)
+
+      landmarks.forEach((poseLandmarks) => {
+        drawingUtils.drawConnectors(poseLandmarks, PoseLandmarker.POSE_CONNECTIONS, {
+          color: '#22c55e',
+          lineWidth: 4,
+        })
+        drawingUtils.drawLandmarks(poseLandmarks, {
+          color: '#facc15',
+          fillColor: '#facc15',
+          lineWidth: 2,
+          radius: 5,
+        })
+      })
+    }
+
     function detectFrame() {
       const video = videoRef.current
       const landmarker = landmarkerRef.current
 
-      if (!isCancelled && video && landmarker && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      if (
+        !isCancelled &&
+        video &&
+        landmarker &&
+        video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
+      ) {
         if (video.currentTime !== lastVideoTimeRef.current) {
           lastVideoTimeRef.current = video.currentTime
 
@@ -50,6 +98,7 @@ export function usePoseLandmarker({ enabled, videoRef }) {
           const landmarks = result.landmarks ?? []
 
           setPoseCount(landmarks.length)
+          drawPoseOverlay(video, landmarks)
 
           if (landmarks.length > 0 && now - lastLogTimeRef.current > 500) {
             lastLogTimeRef.current = now
@@ -65,6 +114,7 @@ export function usePoseLandmarker({ enabled, videoRef }) {
       if (!enabled) {
         setStatus('idle')
         setPoseCount(0)
+        clearCanvas()
         return
       }
 
@@ -94,8 +144,9 @@ export function usePoseLandmarker({ enabled, videoRef }) {
       }
 
       lastVideoTimeRef.current = -1
+      clearCanvas()
     }
-  }, [enabled, videoRef])
+  }, [canvasRef, enabled, videoRef])
 
   useEffect(() => {
     return () => {

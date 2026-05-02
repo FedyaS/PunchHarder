@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { useWebcam } from '../hooks/useWebcam'
 import { usePoseLandmarker } from '../hooks/usePoseLandmarker'
 
@@ -16,12 +17,14 @@ function trackingLabel(status) {
 }
 
 export function LiveCamera() {
+  const canvasRef = useRef(null)
   const { error, isLive, startCamera, status, stopCamera, videoRef } = useWebcam()
   const {
     error: trackingError,
     poseCount,
     status: trackingStatus,
   } = usePoseLandmarker({
+    canvasRef,
     enabled: isLive,
     videoRef,
   })
@@ -66,6 +69,10 @@ export function LiveCamera() {
           className="h-full w-full scale-x-[-1] object-cover"
           muted
           playsInline
+        />
+        <canvas
+          ref={canvasRef}
+          className="pointer-events-none absolute inset-0 h-full w-full scale-x-[-1] object-cover"
         />
 
         {!isLive && (
