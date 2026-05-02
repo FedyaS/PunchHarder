@@ -84,6 +84,15 @@ def save_labels():
     return jsonify({"status": "ok", "path": out_path})
 
 
+@app.route("/api/label/load/<int:clip_index>")
+def load_labels(clip_index):
+    path = os.path.join(LABELS_DIR, f"clip_{clip_index}_labels.json")
+    if not os.path.exists(path):
+        return jsonify({"error": "no labels"}), 404
+    with open(path, "r", encoding="utf-8") as f:
+        return jsonify(json.load(f))
+
+
 @app.route("/api/replay/video/<int:clip_index>")
 def replay_video(clip_index):
     video_path = os.path.join(MOCK_INPUTS, f"clip_{clip_index}.mp4")

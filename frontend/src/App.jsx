@@ -4,6 +4,7 @@ import { LiveCamera } from './components/LiveCamera'
 import Analysis from './pages/Analysis'
 import Replay from './pages/Replay'
 import Label from './pages/Label'
+import Classify from './pages/Classify'
 import MarketingHomePage from './pages/MarketingHomePage.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
 import LiveAnalysisPage from './pages/LiveAnalysisPage.jsx'
@@ -13,7 +14,7 @@ function DevDropdown({ base, active, inactive }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   const location = useLocation()
-  const devPaths = ['/replay', '/analysis', '/label']
+  const devPaths = ['/replay', '/analysis', '/label', '/classify']
   const isDevActive = devPaths.includes(location.pathname)
 
   useEffect(() => {
@@ -35,6 +36,7 @@ function DevDropdown({ base, active, inactive }) {
           <NavLink to="/replay" onClick={() => setOpen(false)} className={({ isActive }) => `block px-4 py-2 text-sm ${isActive ? 'text-emerald-400 bg-gray-800' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}>Replay</NavLink>
           <NavLink to="/analysis" onClick={() => setOpen(false)} className={({ isActive }) => `block px-4 py-2 text-sm ${isActive ? 'text-emerald-400 bg-gray-800' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}>Analysis</NavLink>
           <NavLink to="/label" onClick={() => setOpen(false)} className={({ isActive }) => `block px-4 py-2 text-sm ${isActive ? 'text-emerald-400 bg-gray-800' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}>Label</NavLink>
+          <NavLink to="/classify" onClick={() => setOpen(false)} className={({ isActive }) => `block px-4 py-2 text-sm ${isActive ? 'text-emerald-400 bg-gray-800' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}>Classify</NavLink>
         </div>
       )}
     </div>
@@ -91,6 +93,7 @@ export default function App() {
         <Route path="/replay" element={<Replay />} />
         <Route path="/analysis" element={<Analysis />} />
         <Route path="/label" element={<Label />} />
+        <Route path="/classify" element={<Classify />} />
         <Route path="/session" element={<SessionSummaryPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
