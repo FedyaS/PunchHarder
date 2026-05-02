@@ -1,9 +1,21 @@
+import { useCallback, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { LiveCamera } from '../components/LiveCamera.jsx'
 
-const liveImg =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuB-_7qYbZDNzYF0x82KCGrq4QeNLSNFISKyMqEqzaaRC82kwIIs_Jb5SGVw-MLdmbd3L407O2TIIMlRfFErNbasuhLnUBLLKD03RaIbJ2TU6FM7C-5T-I8e3Zi3KHv9zVa4AqAxBrzd14IQoHmFwYN71B_DmhcrVGX3ZPt5qYRUC5FRaIiTgj_aH7HeVeJVmpIchW893FIcJcO1gLmmVxAQyh59imfyXtB_w83lz50zdcNF9cMLa-P2yK2q0puD5rIxg5r65Z1lHaQ'
+function sensorsLabel(metrics) {
+  if (!metrics) return 'STANDBY'
+  if (metrics.error || metrics.trackingError) return 'CHECK FEED'
+  if (metrics.poseCount > 0) return 'TRACKING'
+  if (metrics.isLive) return 'OPTIMAL'
+  return 'STANDBY'
+}
 
 export default function LiveAnalysisPage() {
+  const liveCameraRef = useRef(null)
+  const [metrics, setMetrics] = useState(null)
+  const handleMetrics = useCallback((next) => {
+    setMetrics(next)
+  }, [])
   return (
     <div className="bg-background text-on-background font-body-md selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col pb-20 md:pb-0">
       <header className="bg-surface-container-low/95 backdrop-blur-xl text-primary font-headline-md uppercase tracking-tight top-0 border-b border-surface-container-highest flex justify-between items-center px-6 py-4 w-full sticky z-50">
@@ -25,7 +37,9 @@ export default function LiveAnalysisPage() {
           <span className="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer">settings</span>
           <button
             type="button"
-            className="bg-primary-container text-on-primary-container px-6 py-2 font-bold hover:bg-primary hover:text-on-primary transition-all active:scale-95 text-xs tracking-wider rounded-lg border-0 cursor-pointer"
+            className="bg-primary-container text-on-primary-container px-6 py-2 font-bold hover:bg-primary hover:text-on-primary transition-all active:scale-95 text-xs tracking-wider rounded-lg border-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={metrics?.status === 'loading' || metrics?.isLive}
+            onClick={() => liveCameraRef.current?.startCamera()}
           >
             GO LIVE
           </button>
@@ -69,30 +83,32 @@ export default function LiveAnalysisPage() {
         </aside>
 
         <section className="flex-grow relative bg-black flex flex-col min-h-[40vh]">
-          <div className="flex-grow relative overflow-hidden group min-h-[280px]">
-            <img alt="" className="w-full h-full object-cover opacity-50 grayscale hover:grayscale-0 transition-all duration-700 min-h-[240px]" src={liveImg} />
-            <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-90" viewBox="0 0 1000 1000" preserveAspectRatio="none">
-              <g fill="none" stroke="#ffb4a2" strokeWidth="2">
-                <circle cx="500" cy="200" fill="#ffb4a2" r="4" />
-                <path d="M500 200 L500 450" />
-                <path d="M400 300 L500 250 L600 300" />
-                <path className="ai-skeleton-path" d="M400 300 L320 400 L280 320" stroke="#94d0db" />
-                <path d="M600 300 L750 280 L820 350" />
-                <path d="M450 650 L500 450 L550 650" />
-                <path d="M450 650 L430 800 L460 950" />
-                <path d="M550 650 L570 800 L540 950" />
-              </g>
-            </svg>
-            <div className="absolute top-8 left-8 flex flex-col gap-2">
+          <div className="flex-grow relative overflow-hidden group min-h-[280px] flex flex-col">
+            <LiveCamera ref={liveCameraRef} embedded onMetrics={handleMetrics} className="min-h-[280px] flex-1" />
+            <div className="pointer-events-none absolute top-8 left-8 z-30 flex flex-col gap-2">
               <div className="bg-surface-container-low/80 backdrop-blur-md px-4 py-2 border-l-4 border-primary flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-error animate-pulse" />
-                <span className="font-label-bold text-[10px] text-on-surface uppercase tracking-widest">LIVE ANALYSIS ACTIVE</span>
+                <span
+                  className={`w-2 h-2 rounded-full ${metrics?.isLive ? 'bg-error animate-pulse' : 'bg-on-surface-variant'}`}
+                />
+                <span className="font-label-bold text-[10px] text-on-surface uppercase tracking-widest">
+                  {metrics?.isLive ? 'LIVE ANALYSIS ACTIVE' : 'LIVE ANALYSIS STANDBY'}
+                </span>
               </div>
               <div className="bg-surface-container-low/80 backdrop-blur-md px-4 py-2 border-l-4 border-secondary flex items-center gap-2">
-                <span className="font-label-bold text-[10px] text-secondary uppercase tracking-widest">SENSORS: OPTIMAL</span>
+                <span className="font-label-bold text-[10px] text-secondary uppercase tracking-widest">
+                  SENSORS: {sensorsLabel(metrics)}
+                </span>
               </div>
+              {metrics?.isLive && (
+                <div className="bg-surface-container-low/80 backdrop-blur-md px-4 py-2 border-l-4 border-primary/60 flex items-center gap-2 pointer-events-auto">
+                  <span className="font-label-bold text-[10px] text-on-surface-variant uppercase tracking-widest">
+                    Poses in frame:{' '}
+                    <span className="font-mono text-primary">{metrics.poseCount ?? 0}</span>
+                  </span>
+                </div>
+              )}
             </div>
-            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-full max-w-xl px-4">
+            <div className="absolute bottom-12 left-1/2 z-20 -translate-x-1/2 w-full max-w-xl px-4 pointer-events-none">
               <div className="bg-primary-container text-on-primary-container p-6 flex items-center justify-between shadow-2xl rounded-lg border border-primary/20">
                 <div className="flex items-center gap-4">
                   <span className="material-symbols-outlined text-4xl text-primary">bolt</span>

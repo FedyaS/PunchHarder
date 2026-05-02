@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { useWebcam } from '../hooks/useWebcam'
 import { usePoseLandmarker } from '../hooks/usePoseLandmarker'
 
@@ -16,7 +16,10 @@ function trackingLabel(status) {
   return 'Pose tracking is idle'
 }
 
-export function LiveCamera() {
+export const LiveCamera = forwardRef(function LiveCamera(
+  { className = '', embedded = false, onMetrics },
+  ref,
+) {
   const canvasRef = useRef(null)
   const { error, isLive, startCamera, status, stopCamera, videoRef } = useWebcam()
   const {
@@ -29,8 +32,94 @@ export function LiveCamera() {
     videoRef,
   })
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      startCamera,
+      stopCamera,
+      isLive,
+      status,
+    }),
+    [startCamera, stopCamera, isLive, status],
+  )
+
+  useEffect(() => {
+    onMetrics?.({
+      error,
+      isLive,
+      poseCount,
+      status,
+      trackingError,
+      trackingStatus,
+    })
+  }, [error, isLive, onMetrics, poseCount, status, trackingError, trackingStatus])
+
+  const videoStack = (
+    <>
+      <video
+        ref={videoRef}
+        className="h-full w-full scale-x-[-1] object-cover"
+        muted
+        playsInline
+      />
+      <canvas
+        ref={canvasRef}
+        className="pointer-events-none absolute inset-0 h-full w-full scale-x-[-1] object-cover"
+      />
+
+      {!isLive && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/75 text-center px-4 z-10">
+          <div>
+            <p className="text-lg font-semibold text-on-surface font-headline-md">
+              {statusLabel(status)}
+            </p>
+            <p className="mt-2 text-sm text-on-surface-variant font-body-md">
+              Use GO LIVE or Start camera — your browser will ask for permission.
+            </p>
+          </div>
+        </div>
+      )}
+    </>
+  )
+
+  if (embedded) {
+    return (
+      <div className={`relative flex h-full min-h-[280px] w-full flex-col bg-black ${className}`}>
+        <div className="absolute right-6 top-6 z-20 flex gap-2">
+          <button
+            type="button"
+            className="bg-primary-container text-on-primary-container px-4 py-2 font-label-bold text-xs tracking-wider rounded-lg border-0 shadow-lg transition-all hover:bg-primary hover:text-on-primary active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={status === 'loading' || isLive}
+            onClick={startCamera}
+          >
+            Start camera
+          </button>
+          <button
+            type="button"
+            className="border border-surface-container-highest bg-surface-container-low/90 px-4 py-2 font-label-bold text-xs text-on-surface backdrop-blur-md transition-all hover:bg-surface-container-high active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={!isLive}
+            onClick={stopCamera}
+          >
+            Stop
+          </button>
+        </div>
+
+        <div className="relative min-h-[240px] flex-1 overflow-hidden">{videoStack}</div>
+
+        {(error || trackingError) && (
+          <div className="absolute bottom-24 left-4 right-4 z-20 rounded-lg border border-error/40 bg-error-container/95 px-4 py-2 font-label-bold text-[11px] text-on-error-container md:bottom-4">
+            {error && <p>Camera: {error}</p>}
+            {trackingError && <p className={error ? 'mt-1' : ''}>Pose: {trackingError}</p>}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
-    <section className="w-full max-w-5xl rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/30">
+    <section
+      className={`w-full max-w-5xl rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/30 ${className}`}
+    >
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-300">
@@ -64,27 +153,7 @@ export function LiveCamera() {
       </div>
 
       <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-gray-900">
-        <video
-          ref={videoRef}
-          className="h-full w-full scale-x-[-1] object-cover"
-          muted
-          playsInline
-        />
-        <canvas
-          ref={canvasRef}
-          className="pointer-events-none absolute inset-0 h-full w-full scale-x-[-1] object-cover"
-        />
-
-        {!isLive && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-950/70 text-center">
-            <div>
-              <p className="text-lg font-semibold text-white">{statusLabel(status)}</p>
-              <p className="mt-2 text-sm text-gray-400">
-                Your browser will ask for camera permission when you start.
-              </p>
-            </div>
-          </div>
-        )}
+        {videoStack}
       </div>
 
       <div className="mt-4 rounded-2xl bg-gray-950/70 p-4 text-sm text-gray-300">
@@ -103,4 +172,4 @@ export function LiveCamera() {
       </div>
     </section>
   )
-}
+})
