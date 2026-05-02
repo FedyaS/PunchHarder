@@ -41,3 +41,7 @@ cd backend
 pip install -r requirements.txt
 python app.py
 ```
+
+### Video Editing FFMPEG Installs!
+winget install ffmpeg
+brew install ffmpeg
