@@ -332,7 +332,7 @@ function ScoreBadge({ score, level, summary }) {
   )
 }
 
-export function RoundResults({ sessionResults, onNewRound }) {
+export function RoundResults({ sessionResults, currentUser, onNewRound, onAddUser, onViewLeaderboard }) {
   const { session_id, clips, score: roundScore } = sessionResults
   const [tipIndex, setTipIndex] = useState(0)
   const [speed, setSpeed] = useState(0.1)
@@ -391,6 +391,44 @@ export function RoundResults({ sessionResults, onNewRound }) {
         level={roundScore?.level}
         summary={roundScore?.summary}
       />
+
+      {roundScore?.score != null && (
+        <div className="flex flex-col gap-4 rounded-2xl border border-primary/20 bg-surface-container-low/60 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="material-symbols-outlined text-2xl text-primary">
+              {currentUser ? 'check_circle' : 'person_add'}
+            </span>
+            <div>
+              <p className="font-label-bold text-xs uppercase tracking-widest text-primary">
+                {currentUser ? 'Leaderboard Updated' : 'Save This Score'}
+              </p>
+              <p className="mt-1 text-sm text-on-surface-variant">
+                {currentUser
+                  ? `${currentUser.name}'s leaderboard score is now ${Math.round(roundScore.score)}. Their next completed round will replace it.`
+                  : 'Add a user now to keep this score on the leaderboard.'}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            {!currentUser && (
+              <button
+                type="button"
+                className="rounded-lg bg-primary px-4 py-2.5 font-label-bold text-xs uppercase tracking-widest text-on-primary transition-all hover:opacity-90 active:scale-95"
+                onClick={onAddUser}
+              >
+                Add User
+              </button>
+            )}
+            <button
+              type="button"
+              className="rounded-lg border border-surface-container-highest bg-surface-container-high/40 px-4 py-2.5 font-label-bold text-xs uppercase tracking-widest text-on-surface transition-all hover:bg-surface-container-highest active:scale-95"
+              onClick={onViewLeaderboard}
+            >
+              Leaderboard
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ---- Stats row ---- */}
       <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-3">

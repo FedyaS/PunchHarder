@@ -6,8 +6,16 @@ import { RoundResults } from '../components/RoundResults.jsx'
 import { useLivePunchClassifier } from '../hooks/useLivePunchClassifier.js'
 import { useSessionRound } from '../hooks/useSessionRound.js'
 
-export default function LiveAnalysisPage({ embedded = false }) {
+export default function LiveAnalysisPage({
+  embedded = false,
+  currentUser = null,
+  onRoundCompleted,
+  onAddUser,
+  onViewLeaderboard,
+  belowCamera = null,
+}) {
   const liveCameraRef = useRef(null)
+  const lastLeaderboardSaveRef = useRef('')
   const { classifyClip, error: classifierError, status: classifierStatus } = useLivePunchClassifier()
   const [classifiedPunches, setClassifiedPunches] = useState([])
   const [metrics, setMetrics] = useState(null)
@@ -57,6 +65,18 @@ export default function LiveAnalysisPage({ embedded = false }) {
     },
     [classifyClip],
   )
+
+  const hasCompletedRound = phase === 'results' && sessionResults
+
+  useEffect(() => {
+    if (sessionResults?.score?.score == null || !onRoundCompleted) return
+
+    const key = `${currentUser?.id || 'no-user'}:${sessionResults.session_id || 'unknown'}:${sessionResults.score.score}`
+    if (lastLeaderboardSaveRef.current === key) return
+
+    lastLeaderboardSaveRef.current = key
+    onRoundCompleted(sessionResults)
+  }, [currentUser?.id, onRoundCompleted, sessionResults])
 
   return (
     <div className={embedded ? 'text-on-background' : 'bg-background text-on-background font-body-md selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col pb-20 md:pb-0'}>
@@ -129,15 +149,24 @@ export default function LiveAnalysisPage({ embedded = false }) {
         )}
 
         {/* ---- Full results screen ---- */}
-        {phase === 'results' && sessionResults ? (
+        {!embedded && hasCompletedRound ? (
           <section className="flex-grow overflow-y-auto bg-background">
-            <RoundResults sessionResults={sessionResults} onNewRound={resetSession} />
+            <RoundResults
+              sessionResults={sessionResults}
+              currentUser={currentUser}
+              onAddUser={onAddUser}
+              onNewRound={resetSession}
+              onViewLeaderboard={onViewLeaderboard}
+            />
             {sessionError && (
               <p className="text-error text-xs text-center pb-4">{sessionError}</p>
             )}
           </section>
-        ) : (
-        <section className={embedded ? 'relative flex aspect-video min-h-[520px] w-full flex-col overflow-hidden rounded-2xl border border-surface-container-highest bg-black' : 'flex-grow relative bg-black flex flex-col min-h-[40vh]'}>
+        ) : (!embedded || !hasCompletedRound) && (
+        <section
+          id={embedded ? 'training-camera' : undefined}
+          className={embedded ? 'relative flex aspect-video min-h-[520px] w-full scroll-mt-6 flex-col overflow-hidden rounded-2xl border border-surface-container-highest bg-black' : 'flex-grow relative bg-black flex flex-col min-h-[40vh]'}
+        >
           <div className="flex-grow relative overflow-hidden group min-h-0 flex flex-col">
             <LiveCamera ref={liveCameraRef} embedded onMetrics={handleMetrics} className="min-h-[280px] flex-1" />
 
@@ -270,6 +299,23 @@ export default function LiveAnalysisPage({ embedded = false }) {
             )}
           </div>
         </section>
+        )}
+
+        {embedded && belowCamera}
+
+        {embedded && hasCompletedRound && (
+          <section className="bg-background">
+            <RoundResults
+              sessionResults={sessionResults}
+              currentUser={currentUser}
+              onAddUser={onAddUser}
+              onNewRound={resetSession}
+              onViewLeaderboard={onViewLeaderboard}
+            />
+            {sessionError && (
+              <p className="text-error text-xs text-center pb-4">{sessionError}</p>
+            )}
+          </section>
         )}
 
       </main>

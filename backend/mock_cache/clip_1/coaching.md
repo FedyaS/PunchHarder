@@ -1,11 +1,17 @@
 ## Guard drops on the cross — @2.188s-2.649s
-The right hand opens too early during the cross, leaving the chin exposed. Keep the left hand glued to the face and rotate the hips fully before extending the right arm. This will tighten the guard and add power to the punch.
+The right hand opens too early after the jab, leaving the chin exposed. Keep the left glove tight to the face and rotate the hips forward to drive the cross, which will naturally bring the guard back in.
 
 ## Hip drive — @3.095s-3.238s
-The hips stay flat on the second cross, reducing torque and balance. Drive the rear hip forward and pivot on the back foot to generate rotation. A stronger hip snap will make the cross snappier and keep you centered.
+The jab at 3.003s lacks full hip rotation, resulting in a flat, weak punch. Engage the rear hip and twist the torso to generate power, then snap the jab back to the guard position quickly.
 
-## Guard drops on the cross — @4.163s-4.399s
-Again the left hand slips away as the right hand comes out, creating a gap in the guard. Re‑engage the left hand immediately after the cross, keeping it near the cheek. This maintains a solid defensive posture throughout the combination.
+## Guard drops on the cross — @3.839s-4.039s
+During the second cross at 3.839s, the left hand falls away from the face, creating a gap in defense. Maintain a high guard throughout the punch by keeping the elbow tucked and the shoulder up.
 
-## Overall rhythm — @0.132s-0.531s
-The opening flurry feels rushed; the punches are thrown without a clear beat. Slow the tempo slightly, pause briefly between the jab and the first cross, then build a steady rhythm. Consistent timing will improve both accuracy and power.
+## Guard drops on the cross — @4.137s-4.404s
+The third cross shows the same issue with the left glove dropping, indicating a timing or balance problem. Focus on keeping weight centered and the lead shoulder up to preserve the guard.
+
+## Guard drops on the cross — @4.506s-4.769s
+Another instance where the left hand opens after the punch, exposing the chin. Practice snapping the left hand back to the guard immediately after each cross to build muscle memory.
+
+## Guard drops on the cross — @4.873s-4.939s
+The final cross repeats the pattern of the left glove dropping, suggesting a consistent flaw in the punch recovery. Work on a tighter, quicker retraction of the left hand to maintain a solid defensive posture.
