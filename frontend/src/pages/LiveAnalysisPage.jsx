@@ -10,14 +10,15 @@ function sensorsLabel(metrics) {
   return 'STANDBY'
 }
 
-export default function LiveAnalysisPage() {
+export default function LiveAnalysisPage({ embedded = false }) {
   const liveCameraRef = useRef(null)
   const [metrics, setMetrics] = useState(null)
   const handleMetrics = useCallback((next) => {
     setMetrics(next)
   }, [])
   return (
-    <div className="bg-background text-on-background font-body-md selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col pb-20 md:pb-0">
+    <div className={embedded ? 'text-on-background' : 'bg-background text-on-background font-body-md selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col pb-20 md:pb-0'}>
+      {!embedded && (
       <header className="bg-surface-container-low/95 backdrop-blur-xl text-primary font-headline-md uppercase tracking-tight top-0 border-b border-surface-container-highest flex justify-between items-center px-6 py-4 w-full sticky z-50">
         <Link to="/" className="text-2xl font-black italic tracking-widest text-primary">
           PUNCHHARDER
@@ -45,8 +46,10 @@ export default function LiveAnalysisPage() {
           </button>
         </div>
       </header>
+      )}
 
-      <main className="flex-grow flex flex-col lg:flex-row h-[calc(100vh-144px)] lg:h-[calc(100vh-72px)] overflow-hidden">
+      <main className={embedded ? 'grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]' : 'flex-grow flex flex-col lg:flex-row h-[calc(100vh-144px)] lg:h-[calc(100vh-72px)] overflow-hidden'}>
+        {!embedded && (
         <aside className="hidden lg:flex flex-col p-4 sticky left-0 bg-surface-container-low w-64 border-r border-surface-container-highest font-headline-md self-start h-full">
           <div className="text-primary font-black text-xl mb-8">SESSION LIVE</div>
           <nav className="flex flex-col gap-2 font-label-bold">
@@ -81,8 +84,9 @@ export default function LiveAnalysisPage() {
             </div>
           </nav>
         </aside>
+        )}
 
-        <section className="flex-grow relative bg-black flex flex-col min-h-[40vh]">
+        <section className={embedded ? 'relative flex min-h-[520px] flex-col overflow-hidden rounded-2xl border border-surface-container-highest bg-black' : 'flex-grow relative bg-black flex flex-col min-h-[40vh]'}>
           <div className="flex-grow relative overflow-hidden group min-h-[280px] flex flex-col">
             <LiveCamera ref={liveCameraRef} embedded onMetrics={handleMetrics} className="min-h-[280px] flex-1" />
             <div className="pointer-events-none absolute top-8 left-8 z-30 flex flex-col gap-2">
@@ -138,7 +142,7 @@ export default function LiveAnalysisPage() {
           </div>
         </section>
 
-        <aside className="w-full lg:w-96 bg-surface-container-low border-l border-surface-container-highest p-6 flex flex-col gap-6 overflow-y-auto max-h-[50vh] lg:max-h-none">
+        <aside className={embedded ? 'rounded-2xl border border-surface-container-highest bg-surface-container-low p-6 flex flex-col gap-6' : 'w-full lg:w-96 bg-surface-container-low border-l border-surface-container-highest p-6 flex flex-col gap-6 overflow-y-auto max-h-[50vh] lg:max-h-none'}>
           <div className="bg-surface-container-high p-5 border border-surface-container-highest relative overflow-hidden rounded-lg">
             <div className="absolute top-0 right-0 p-2 opacity-5 text-primary">
               <span className="material-symbols-outlined text-6xl">speed</span>
@@ -214,15 +218,18 @@ export default function LiveAnalysisPage() {
             </div>
           </div>
 
-          <Link
-            to="/session"
-            className="w-full lg:hidden bg-error-container text-on-error-container font-bold py-4 active:scale-95 transition-transform uppercase tracking-widest text-[10px] font-label-bold rounded-lg text-center block"
-          >
-            STOP SESSION
-          </Link>
+          {!embedded && (
+            <Link
+              to="/session"
+              className="w-full lg:hidden bg-error-container text-on-error-container font-bold py-4 active:scale-95 transition-transform uppercase tracking-widest text-[10px] font-label-bold rounded-lg text-center block"
+            >
+              STOP SESSION
+            </Link>
+          )}
         </aside>
       </main>
 
+      {!embedded && (
       <nav className="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-safe bg-surface-container-low border-t border-surface-container-highest h-20 z-50 font-label-bold text-[10px] uppercase tracking-widest">
         <Link to="/dashboard" className="flex flex-col items-center justify-center text-on-surface-variant">
           <span className="material-symbols-outlined">grid_view</span>
@@ -241,7 +248,9 @@ export default function LiveAnalysisPage() {
           <span>User</span>
         </span>
       </nav>
+      )}
 
+      {!embedded && (
       <footer className="hidden md:block bg-surface-container-lowest w-full py-12 border-t border-surface-container-highest font-label-bold text-[10px] uppercase tracking-widest">
         <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-primary font-black italic">PUNCHHARDER ELITE</div>
@@ -254,6 +263,7 @@ export default function LiveAnalysisPage() {
           <div className="text-on-tertiary-container/30">© 2026 PUNCHHARDER ELITE. HIGH PERFORMANCE SYSTEMS.</div>
         </div>
       </footer>
+      )}
     </div>
   )
 }
