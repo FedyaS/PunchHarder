@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react'
 import { useWebcam } from '../hooks/useWebcam'
 import { usePoseLandmarker } from '../hooks/usePoseLandmarker'
 
@@ -16,12 +16,53 @@ function trackingLabel(status) {
   return 'Pose tracking is idle'
 }
 
+function supportedRecordingType() {
+  if (!window.MediaRecorder) return ''
+
+  const candidates = [
+    'video/webm;codecs=vp9',
+    'video/webm;codecs=vp8',
+    'video/webm',
+    'video/mp4',
+  ]
+
+  return candidates.find((type) => window.MediaRecorder.isTypeSupported(type)) || ''
+}
+
+function recordStreamClip(stream, durationMs) {
+  return new Promise((resolve, reject) => {
+    if (!window.MediaRecorder) {
+      reject(new Error('This browser does not support MediaRecorder.'))
+      return
+    }
+
+    const mimeType = supportedRecordingType()
+    const recorder = new window.MediaRecorder(stream, mimeType ? { mimeType } : undefined)
+    const chunks = []
+
+    recorder.addEventListener('dataavailable', (event) => {
+      if (event.data.size > 0) chunks.push(event.data)
+    })
+    recorder.addEventListener('error', () => {
+      reject(new Error('Failed to record punch clip.'))
+    })
+    recorder.addEventListener('stop', () => {
+      resolve(new Blob(chunks, { type: recorder.mimeType || mimeType || 'video/webm' }))
+    })
+
+    recorder.start()
+    window.setTimeout(() => {
+      if (recorder.state !== 'inactive') recorder.stop()
+    }, durationMs)
+  })
+}
+
 export const LiveCamera = forwardRef(function LiveCamera(
-  { className = '', embedded = false, onMetrics },
+  { className = '', embedded = false, onMetrics, onPunchClipReady },
   ref,
 ) {
   const canvasRef = useRef(null)
-  const { error, isLive, startCamera, status, stopCamera, videoRef } = useWebcam()
+  const { error, isLive, startCamera, status, stopCamera, stream, videoRef } = useWebcam()
   const {
     error: trackingError,
     poseCount,
@@ -33,6 +74,24 @@ export const LiveCamera = forwardRef(function LiveCamera(
     enabled: isLive,
     videoRef,
   })
+
+  const recordPunchClip = useCallback(
+    async (labels, { durationMs = 1500, filename } = {}) => {
+      if (!stream) {
+        throw new Error('Camera stream is not live.')
+      }
+
+      const videoBlob = await recordStreamClip(stream, durationMs)
+      const result = await onPunchClipReady?.({
+        filename,
+        labels,
+        videoBlob,
+      })
+
+      return result ?? { labels, videoBlob }
+    },
+    [onPunchClipReady, stream],
+  )
 
   useImperativeHandle(
     ref,
