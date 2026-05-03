@@ -1,7 +1,9 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Replay from './pages/Replay'
 import LiveAnalysisPage from './pages/LiveAnalysisPage.jsx'
+import Eval from './pages/Eval'
 
-export default function App() {
+function Home() {
   return (
     <main className="min-h-screen bg-background text-on-background font-body-md selection:bg-primary-container selection:text-on-primary-container">
       <div className="mx-auto flex max-w-7xl flex-col gap-12 px-4 py-8 sm:px-6 lg:px-8">
@@ -21,5 +23,17 @@ export default function App() {
         <Replay embedded />
       </div>
     </main>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/eval" element={<Eval />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   )
 }

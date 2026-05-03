@@ -40,6 +40,41 @@ def extract_frames(video_path: Path, timestamps_ms: list[int]) -> dict[int, any]
     return frames
 
 
+def extract_all_frames_in_window(video_path: Path, start_ms: int, end_ms: int) -> list[tuple[int, any]]:
+    """Extract every frame between start_ms and end_ms at native FPS."""
+    cap = cv2.VideoCapture(str(video_path))
+    if not cap.isOpened():
+        return []
+
+    fps = cap.get(cv2.CAP_PROP_FPS) or 30
+    frame_interval_ms = 1000.0 / fps
+
+    cap.set(cv2.CAP_PROP_POS_MSEC, start_ms)
+    frames = []
+    while True:
+        pos_ms = cap.get(cv2.CAP_PROP_POS_MSEC)
+        if pos_ms > end_ms:
+            break
+        ok, frame = cap.read()
+        if not ok:
+            break
+        frames.append((int(pos_ms), frame))
+    cap.release()
+
+    # For very short punches that yielded 0-1 frames, also grab the midpoint
+    if len(frames) < 2:
+        cap = cv2.VideoCapture(str(video_path))
+        mid = (start_ms + end_ms) // 2
+        for ts in [start_ms, mid, end_ms]:
+            cap.set(cv2.CAP_PROP_POS_MSEC, ts)
+            ok, frame = cap.read()
+            if ok and not any(abs(f[0] - ts) < frame_interval_ms for f in frames):
+                frames.append((ts, frame))
+        cap.release()
+
+    return sorted(frames, key=lambda x: x[0])
+
+
 def run_inference(model: YOLO, frame, conf_threshold: float = 0.25):
     results = model(frame, verbose=False, conf=conf_threshold)
     predictions = []
@@ -71,34 +106,51 @@ def process_clip(model: YOLO, clip_index: int, conf_threshold: float) -> dict | 
     for pi, punch in enumerate(labels.get("punches", [])):
         start = punch["start_ms"]
         end = punch["end_ms"]
-        mid = (start + end) // 2
-        timestamps = [start, mid, end]
+        duration = end - start
 
-        frames = extract_frames(video_path, timestamps)
+        all_frames = extract_all_frames_in_window(video_path, start, end)
+        print(f"    punch {pi}: {start}-{end}ms ({duration}ms) → {len(all_frames)} frames")
 
-        frame_results = []
-        for ts in timestamps:
-            frame = frames.get(ts)
-            if frame is None:
-                continue
-
-            filename = f"clip_{clip_index}_punch_{pi}_{ts}ms.jpg"
-            cv2.imwrite(str(FRAMES_DIR / filename), frame)
-
+        # Run inference on every frame, track which has best punch detection
+        scored_frames = []
+        for ts, frame in all_frames:
             preds = run_inference(model, frame, conf_threshold)
-            frame_results.append({
+            best_in_frame = _pick_best_prediction([{"yolo_predictions": preds}])
+            scored_frames.append({
                 "timestamp_ms": ts,
-                "filename": filename,
+                "frame": frame,
                 "yolo_predictions": preds,
+                "best_conf": best_in_frame.get("confidence", 0),
+                "best_class": best_in_frame.get("class", ""),
             })
 
-        best_pred = _pick_best_prediction(frame_results)
+        # Sort by best detection confidence, pick top frame + neighbors for display
+        scored_frames.sort(key=lambda x: x["best_conf"], reverse=True)
+
+        # The overall best prediction for this punch window
+        if scored_frames and scored_frames[0]["best_conf"] > 0:
+            best_pred = {"class": scored_frames[0]["best_class"], "confidence": scored_frames[0]["best_conf"]}
+        else:
+            best_pred = {"class": "", "confidence": 0}
+
+        by_time = sorted(scored_frames, key=lambda x: x["timestamp_ms"])
+
+        frame_results = []
+        for sf in by_time:
+            filename = f"clip_{clip_index}_punch_{pi}_{sf['timestamp_ms']}ms.jpg"
+            cv2.imwrite(str(FRAMES_DIR / filename), sf["frame"])
+            frame_results.append({
+                "timestamp_ms": sf["timestamp_ms"],
+                "filename": filename,
+                "yolo_predictions": sf["yolo_predictions"],
+            })
 
         punch_results.append({
             "punch_index": pi,
             "ground_truth": punch.get("type", ""),
             "start_ms": start,
             "end_ms": end,
+            "num_frames_analyzed": len(all_frames),
             "predicted_class": best_pred.get("class", ""),
             "predicted_confidence": best_pred.get("confidence", 0),
             "match": best_pred.get("class", "").lower() == punch.get("type", "").lower(),
@@ -112,6 +164,7 @@ def process_clip(model: YOLO, clip_index: int, conf_threshold: float) -> dict | 
         "num_punches": len(punch_results),
         "punches": punch_results,
     }
+
 
 
 def _pick_best_prediction(frame_results: list[dict]) -> dict:
