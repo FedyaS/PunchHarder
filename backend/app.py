@@ -15,9 +15,11 @@ from punch_classifier import classify_punch_windows
 from session_pipeline import process_session_clip, score_round
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=os.environ.get("LOG_LEVEL", "INFO").upper(),
     format="%(asctime)s %(name)s %(levelname)s %(message)s",
 )
+for noisy_logger in ("openai", "httpcore", "httpx"):
+    logging.getLogger(noisy_logger).setLevel(logging.WARNING)
 
 _backend_dir = Path(__file__).resolve().parent
 _repo_root = _backend_dir.parent

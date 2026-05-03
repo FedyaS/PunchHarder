@@ -1,20 +1,14 @@
-## Uppercut form — @0.281s-0.518s  
-The uppercut shows solid hip rotation and a tight fist, but the shoulder drops slightly on the way up, reducing power. Keep the elbow higher and drive through the hips to generate more upward force.
+## Guard drops on the cross — @2.188s-2.649s  
+The right hand leaves the guard too early, exposing the chin. Keep the left hand up near the cheek and rotate the shoulder to protect the face while throwing the cross.
 
-## Cross timing — @0.985s-1.334s  
-The cross lands cleanly with good extension, but the lead foot drifts forward, breaking balance. Reset the stance after each punch to maintain a stable base.
+## Uppercut timing — @1.069s-1.205s  
+The uppercut is thrown with a flat arm and minimal hip drive. Bend the knees, pivot the back foot, and generate power from the hips to lift the punch upward.
 
-## Uppercut consistency — @1.272s-1.622s  
-This uppercut mirrors the first in technique, yet the head tilts forward a bit, exposing the chin. Keep the chin tucked and eyes forward to protect the head.
+## Guard drops on the cross — @3.402s-3.439s  
+The left hand drops again during the second cross, leaving the head vulnerable. Maintain a tight guard by keeping the elbows tucked and the chin slightly tucked under the lead shoulder.
 
-## Uppercut power — @2.439s-2.726s  
-The uppercut is powerful with good hip drive, but the recovery is slow, leaving you open. Snap back to guard quickly to stay safe.
+## Uppercut timing — @1.702s-1.836s  
+The second uppercut lacks proper hip rotation and comes out too early. Drive the back hip forward and keep the rear foot planted to add torque and height to the punch.
 
-## Guard stability — @2.680s-2.934s  
-The guard drops briefly after the previous punch, creating a gap. Re‑engage the gloves immediately and keep the elbows in to maintain a tight guard.
-
-## Guard stability — @3.384s-3.642s  
-Again the guard opens slightly as the body shifts, reducing defense. Focus on keeping the gloves up and the core engaged throughout the movement.
-
-## Guard stability — @4.134s-4.342s  
-The guard remains solid here, showing improved consistency. Continue this habit to finish the round strong.
+## Guard drops on the cross — @4.402s-4.535s  
+The right hand again breaks guard during the final cross, exposing the face. Focus on keeping the lead hand high and the rear hand protecting the chin throughout the combination.

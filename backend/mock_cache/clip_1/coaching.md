@@ -1,14 +1,11 @@
 ## Guard drops on the cross — @2.188s-2.649s
-The right hand opens too early during the cross, breaking the guard. Keep the left hand up near the chin and rotate the hips fully to drive the punch, which will keep the guard tight and the body balanced.
+The right hand opens too early during the cross, leaving the chin exposed. Keep the left hand glued to the face and rotate the hips fully before extending the right arm. This will tighten the guard and add power to the punch.
 
-## Hip drive missing on uppercut — @0.471s-0.567s
-The uppercut lacks hip rotation; the punch comes from the shoulder alone. Engage the hips and drive upward from the legs to generate power and maintain balance.
+## Hip drive — @3.095s-3.238s
+The hips stay flat on the second cross, reducing torque and balance. Drive the rear hip forward and pivot on the back foot to generate rotation. A stronger hip snap will make the cross snappier and keep you centered.
 
-## Uppercut timing inconsistency — @0.775s-1.125s
-The second uppercut is delayed and the follow‑through is weak. Snap the punch quickly after the hip turn and keep the elbow close to the body for a tighter, more effective strike.
+## Guard drops on the cross — @4.163s-4.399s
+Again the left hand slips away as the right hand comes out, creating a gap in the guard. Re‑engage the left hand immediately after the cross, keeping it near the cheek. This maintains a solid defensive posture throughout the combination.
 
-## Guard collapse on rapid punches — @3.175s-3.383s
-During the rapid sequence, the guard drops on the left side, exposing the head. Maintain a high guard by keeping the elbows in and the chin tucked, even when throwing fast combinations.
-
-## Cross punch alignment — @4.583s-4.837s
-The final cross is slightly off‑center, causing the body to lean. Align the shoulder with the target, rotate the hips, and keep the weight centered to deliver a straight, powerful punch.
+## Overall rhythm — @0.132s-0.531s
+The opening flurry feels rushed; the punches are thrown without a clear beat. Slow the tempo slightly, pause briefly between the jab and the first cross, then build a steady rhythm. Consistent timing will improve both accuracy and power.

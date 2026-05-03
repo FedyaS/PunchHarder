@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 from typing import Any
 
@@ -11,7 +12,10 @@ from openai import OpenAI
 
 log = logging.getLogger(__name__)
 
-SCORING_MODEL = "nvidia/llama-3.3-70b-instruct"
+SCORING_MODEL = os.environ.get(
+    "NVIDIA_SCORING_MODEL",
+    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+)
 
 SCORING_PROMPT = """You are an expert boxing analyst. Given the punch classification data and coaching notes from a 15-second shadowboxing round, produce a JSON score.
 
@@ -75,6 +79,10 @@ def fetch_round_score(
         ],
         temperature=0.1,
         max_tokens=256,
+        extra_body={
+            "chat_template_kwargs": {"enable_thinking": False},
+            "top_k": 1,
+        },
     )
     elapsed = time.time() - t0
 
