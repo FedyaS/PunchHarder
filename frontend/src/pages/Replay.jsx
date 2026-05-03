@@ -605,7 +605,7 @@ function ClipPlayer({ clip, index, coachingText }) {
   )
 }
 
-export default function Replay() {
+export default function Replay({ embedded = false }) {
   const [clips, setClips] = useState([])
   const [coachingByIndex, setCoachingByIndex] = useState({})
   const [clipIndex, setClipIndex] = useState(0)
@@ -649,7 +649,7 @@ export default function Replay() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className={embedded ? 'rounded-2xl border border-gray-800 bg-gray-900/50 p-8 text-center' : 'min-h-screen bg-gray-950 flex items-center justify-center'}>
         <div className="text-gray-400 text-lg animate-pulse">Loading clips...</div>
       </div>
     )
@@ -657,7 +657,7 @@ export default function Replay() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className={embedded ? 'rounded-2xl border border-red-900/60 bg-red-950/20 p-8 text-center' : 'min-h-screen bg-gray-950 flex items-center justify-center'}>
         <p className="text-red-400 text-lg">{error}</p>
       </div>
     )
@@ -680,9 +680,9 @@ export default function Replay() {
   const atLastClip = totalClips > 0 && clipIndex >= totalClips - 1
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <div className="max-w-4xl mx-auto px-6 py-10">
-        <div className="mb-6">
+    <section className={embedded ? 'rounded-2xl border border-gray-800 bg-gray-950/70 text-white' : 'min-h-screen bg-gray-950 text-white'}>
+      <div className={embedded ? 'px-6 py-8' : 'max-w-4xl mx-auto px-6 py-10'}>
+        <div className="mb-8">
           <h1 className="text-3xl font-bold">Punch Replay</h1>
           <p className="text-gray-500 text-sm mt-1">
             One clip at a time &middot; Nemotron-flagged ranges on the timeline (amber) &middot; use Previous / Next clip to move between segments
@@ -722,6 +722,6 @@ export default function Replay() {
           />
         )}
       </div>
-    </div>
+    </section>
   )
 }
