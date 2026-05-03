@@ -25,22 +25,29 @@ COACHING_PROMPT_TEMPLATE = """You are an expert boxing coach reviewing a short s
 
 The punch log below was produced by the athlete's tracking pipeline (not by you). Treat it as the source of truth for **what** was thrown and **when**. Your job is to **watch the video** and give **natural-language coaching**: form, guard, balance, hip rotation, head movement, rhythm, and how well execution matches the intended techniques in the log.
 
-Punch log for this clip (times in ms from clip start):
+Punch log for this clip (times in **seconds** from clip start, decimal point `.`):
 {punch_log}
 
-## Required time format for specific feedback
-Whenever you cite a **concrete** moment or interval the athlete should re-watch (a mistake, weak rep, or good example tied to timing), you MUST tag it using **exactly** this pattern — ASCII digits, lowercase `ms`, single hyphen `-`, no spaces inside the token, prefix `@`:
+## Structure: timestamp in the heading only
+For each **concrete** interval the athlete should re-watch (a mistake, weak rep, or good example tied to timing), use **one markdown section**:
 
-  @<start_ms>ms-<end_ms>ms
+1. **Heading line** (`#` or `##`): a short label for the issue **and** the machine-readable time token (see below). Example: `## Guard drops on the cross — @2.188s-2.649s` or `# Hip drive — @3.095s-3.238s`.
+2. **Body** (paragraphs under that heading): explain the issue in normal coaching language. **Do not** repeat that time range in the body — no `@…s-…s` tokens in the body, no "at 2.3 seconds", no second-by-second narration, no "from X s to Y s" restatements. The athlete already sees the window in the heading.
 
-Examples: `@3095ms-3238ms`  `@2188ms-2649ms`
+**Time token (in the heading only)** — exactly this shape: ASCII digits, `.` for decimals, lowercase `s`, single hyphen `-`, prefix `@`, no spaces inside:
 
-- Prefer start/end times taken from the punch log intervals when they apply; otherwise estimate from the video but keep this same token shape.
-- For a single instant, repeat the same number: `@3095ms-3095ms`.
-- Put one token next to the sentence that explains the issue (beginning or end of the sentence is fine).
-- Do **not** use other styles for those moments: no `3.1s`, no `(2188-2649 ms)` only, no `→` ranges, no en-dashes as separators. Plain prose without a timestamp is OK for general advice that is not tied to one interval.
+  @<start_s>s-<end_s>s
 
-Write coaching feedback the athlete can use in the next round. Use clear sections with short headings (plain text or markdown `#` headings). Do **not** output JSON, code fences, or a revised punch list. Do not invent punches that contradict the log; if something in the video is unclear, say so briefly."""
+Examples (for headings only): `@3.095s-3.238s`  `@2.188s-2.649s`  `@0.85s-1.10s`
+
+- Prefer **2–3 decimal places** when aligning to the punch log; rough estimates from the video are fine with fewer decimals.
+- For a single instant: `@3.095s-3.095s`.
+- **One** `@…s-…s` token per section heading (one interval per section).
+- Do **not** use `@…ms-…ms`, bare `(2.1–2.6 s)` as the only anchor, `→` ranges, or en-dashes inside the token.
+
+You may add general sections (e.g. warm-up or overall summary) **without** a time token in the heading if they are not tied to one interval.
+
+Write coaching feedback the athlete can use in the next round. Use markdown `#` / `##` headings for sections. Do **not** output JSON, code fences, or a revised punch list. Do not invent punches that contradict the log; if something in the video is unclear, say so briefly."""
 
 
 def log(msg: str):
@@ -81,7 +88,7 @@ def format_punch_log(labels: Optional[dict]) -> str:
         t = p.get("type", "?")
         s = p.get("start_ms", 0)
         e = p.get("end_ms", s)
-        lines.append(f"  {i}. {t}: {s}ms-{e}ms")
+        lines.append(f"  {i}. {t}: {s / 1000:.3f}s–{e / 1000:.3f}s")
     summary = {}
     for p in punches:
         t = p.get("type", "unknown")
@@ -118,8 +125,9 @@ def fetch_coaching(
                 "content": (
                     "You are a boxing coach. Respond with helpful coaching text only. "
                     "No JSON, no punch detection tables. "
-                    "For every specific clip interval you flag, include the exact token "
-                    "@<start>ms-<end>ms (ASCII hyphen) as instructed in the user message."
+                    "For every specific clip interval you flag, put the exact token "
+                    "@<start>s-<end>s in that section's markdown heading only; keep the "
+                    "body prose free of timestamps and @ tokens, as instructed in the user message."
                 ),
             },
             {
