@@ -258,7 +258,8 @@ function PunchTable({ punches }) {
           </thead>
           <tbody>
             {punches.map((p, i) => {
-              const type = p.type || 'unknown'
+              const rawType = p.type || 'unknown'
+              const type = rawType === 'unknown' ? 'random' : rawType
               const conf = p.yolo_confidence != null ? `${(p.yolo_confidence * 100).toFixed(0)}%` : '—'
               const timeS = p.absoluteStartMs != null ? `${(p.absoluteStartMs / 1000).toFixed(2)}s` : '—'
               return (
@@ -266,7 +267,7 @@ function PunchTable({ punches }) {
                   <td className="px-5 py-3 font-label-bold text-sm tabular-nums text-on-surface-variant">{i + 1}</td>
                   <td className="px-5 py-3">
                     <span className="inline-flex items-center gap-2">
-                      <span className="material-symbols-outlined text-lg text-primary">{PUNCH_ICONS[type] || 'help_outline'}</span>
+                      <span className="material-symbols-outlined text-lg text-primary">{PUNCH_ICONS[rawType] || 'help_outline'}</span>
                       <span className="font-label-bold text-sm uppercase tracking-wider text-on-surface">{type}</span>
                     </span>
                   </td>
@@ -370,7 +371,7 @@ export function RoundResults({ sessionResults, onNewRound }) {
   const typeEntries = Object.entries(stats.byType).sort((a, b) => b[1] - a[1])
 
   return (
-    <div className="flex flex-col gap-8 p-4 md:p-8 max-w-5xl mx-auto w-full animate-fade-in">
+    <div className="flex flex-col gap-8 p-4 pt-2 md:p-8 md:pt-3 max-w-5xl mx-auto w-full animate-fade-in">
       {/* ---- Header ---- */}
       <div className="flex items-center gap-4">
         <span className="material-symbols-outlined text-5xl text-primary">emoji_events</span>
@@ -379,7 +380,7 @@ export function RoundResults({ sessionResults, onNewRound }) {
             Round Complete
           </h2>
           <p className="font-label-bold text-xs uppercase tracking-widest text-on-surface-variant">
-            {clips.length} clips analyzed · {stats.total} punches detected
+            15 seconds analyzed · {stats.total} punches detected
           </p>
         </div>
       </div>
@@ -393,10 +394,10 @@ export function RoundResults({ sessionResults, onNewRound }) {
 
       {/* ---- Stats row ---- */}
       <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-3">
+        <StatCard label="Seconds" value="15" icon="timer" />
         <StatCard label="Total Punches" value={stats.total} icon="sports_mma" accent />
-        <StatCard label="Round Duration" value="15s" icon="timer" />
         {typeEntries.map(([type, count]) => (
-          <StatCard key={type} label={type} value={count} icon={PUNCH_ICONS[type] || 'help_outline'} />
+          <StatCard key={type} label={type === 'unknown' ? 'random' : type} value={count} icon={PUNCH_ICONS[type] || 'help_outline'} />
         ))}
       </div>
 
@@ -449,17 +450,9 @@ export function RoundResults({ sessionResults, onNewRound }) {
             {/* Text below video */}
             <div className="flex flex-col gap-3">
               <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-headline-md text-xl font-bold text-on-surface leading-snug">
-                    {tip.heading}
-                  </h3>
-                  {tip.matchedPunchType && (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary-container/30 px-2.5 py-1 font-label-bold text-[11px] uppercase tracking-wider text-primary">
-                      <span className="material-symbols-outlined text-sm">{PUNCH_ICONS[tip.matchedPunchType] || 'help_outline'}</span>
-                      {tip.matchedPunchType}
-                    </span>
-                  )}
-                </div>
+                <h3 className="font-headline-md text-xl font-bold text-on-surface leading-snug">
+                  {tip.heading}
+                </h3>
                 {hasTimestamp && (
                   <span className="mt-1 inline-block font-label-bold text-xs uppercase tracking-widest text-primary/70 tabular-nums">
                     Clip {tip.clip_index + 1} · {tip.start_s.toFixed(1)}s – {tip.end_s.toFixed(1)}s
