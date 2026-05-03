@@ -1,0 +1,72 @@
+{
+  "clip_end_ms": 10000,
+  "clip_index": 0,
+  "clip_start_ms": 0,
+  "punches": [
+    {
+      "end_ms": 2649,
+      "start_ms": 2188,
+      "type": "cross"
+    },
+    {
+      "end_ms": 3238,
+      "start_ms": 3095,
+      "type": "jab"
+    },
+    {
+      "end_ms": 3976,
+      "start_ms": 3521,
+      "type": "uppercut"
+    },
+    {
+      "end_ms": 5007,
+      "start_ms": 4629,
+      "type": "hook"
+    },
+    {
+      "end_ms": 5345,
+      "start_ms": 5276,
+      "type": "uppercut"
+    },
+    {
+      "end_ms": 5680,
+      "start_ms": 5574,
+      "type": "uppercut"
+    },
+    {
+      "end_ms": 6533,
+      "start_ms": 6061,
+      "type": "cross"
+    },
+    {
+      "end_ms": 7332,
+      "start_ms": 7070,
+      "type": "cross"
+    },
+    {
+      "end_ms": 7760,
+      "start_ms": 7689,
+      "type": "jab"
+    },
+    {
+      "end_ms": 8079,
+      "start_ms": 8029,
+      "type": "uppercut"
+    },
+    {
+      "end_ms": 8602,
+      "start_ms": 8378,
+      "type": "jab"
+    },
+    {
+      "end_ms": 9347,
+      "start_ms": 9240,
+      "type": "hook"
+    },
+    {
+      "end_ms": 9874,
+      "start_ms": 9811,
+      "type": "jab"
+    }
+  ]
+}

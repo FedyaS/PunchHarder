@@ -1,0 +1,21 @@
+{
+  "session_id": "test_session_001",
+  "round_number": 1,
+  "clip_index": 2,
+  "clip_start_ms": 20000,
+  "clip_end_ms": 30000,
+  "source": {
+    "mediapipe_detection": true,
+    "yolo_classification": true
+  },
+  "punches": [
+    { "type": "jab", "yolo_confidence": 0.80, "velocity_mps": 5.8, "power_score": 55, "timestamp_ms": 20500 },
+    { "type": "cross", "yolo_confidence": 0.90, "velocity_mps": 7.5, "power_score": 65, "timestamp_ms": 21500 },
+    { "type": "jab", "yolo_confidence": 0.85, "velocity_mps": 6.3, "power_score": 60, "timestamp_ms": 22500 },
+    { "type": "hook", "yolo_confidence": 0.80, "velocity_mps": 8.0, "power_score": 70, "timestamp_ms": 23500 },
+    { "type": "cross", "yolo_confidence": 0.85, "velocity_mps": 7.2, "power_score": 65, "timestamp_ms": 24500 },
+    { "type": "jab", "yolo_confidence": 0.83, "velocity_mps": 6.0, "power_score": 57, "timestamp_ms": 25300 },
+    { "type": "uppercut", "yolo_confidence": 0.77, "velocity_mps": 8.9, "power_score": 78, "timestamp_ms": 26200 },
+    { "type": "jab", "yolo_confidence": 0.86, "velocity_mps": 6.1, "power_score": 56, "timestamp_ms": 27800 }
+  ]
+}

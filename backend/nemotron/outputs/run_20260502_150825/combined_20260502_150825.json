@@ -1,0 +1,653 @@
+{
+  "generated_at": "20260502_150825",
+  "video_source": "test1.mp4",
+  "total_duration_ms": 30000,
+  "clip_duration_ms": 10000,
+  "num_clips": 3,
+  "total_tokens": {
+    "prompt_tokens": 2346,
+    "completion_tokens": 2174,
+    "total_tokens": 4520
+  },
+  "total_response_time_s": 41.9,
+  "clips": [
+    {
+      "clip_index": 0,
+      "clip_start_ms": 0,
+      "clip_end_ms": 10000,
+      "analysis": {
+        "punches": [
+          {
+            "type": "jab",
+            "confidence": 0.9,
+            "estimated_velocity": 60.0,
+            "estimated_power": 30.0,
+            "timestamp_ms": 1000
+          },
+          {
+            "type": "jab",
+            "confidence": 0.85,
+            "estimated_velocity": 55.0,
+            "estimated_power": 28.0,
+            "timestamp_ms": 1200
+          },
+          {
+            "type": "jab",
+            "confidence": 0.8,
+            "estimated_velocity": 50.0,
+            "estimated_power": 25.0,
+            "timestamp_ms": 1400
+          },
+          {
+            "type": "jab",
+            "confidence": 0.75,
+            "estimated_velocity": 48.0,
+            "estimated_power": 24.0,
+            "timestamp_ms": 1600
+          },
+          {
+            "type": "jab",
+            "confidence": 0.7,
+            "estimated_velocity": 45.0,
+            "estimated_power": 22.0,
+            "timestamp_ms": 1800
+          },
+          {
+            "type": "jab",
+            "confidence": 0.65,
+            "estimated_velocity": 42.0,
+            "estimated_power": 20.0,
+            "timestamp_ms": 1900
+          },
+          {
+            "type": "jab",
+            "confidence": 0.6,
+            "estimated_velocity": 40.0,
+            "estimated_power": 18.0,
+            "timestamp_ms": 2100
+          },
+          {
+            "type": "jab",
+            "confidence": 0.55,
+            "estimated_velocity": 38.0,
+            "estimated_power": 17.0,
+            "timestamp_ms": 2300
+          },
+          {
+            "type": "jab",
+            "confidence": 0.5,
+            "estimated_velocity": 35.0,
+            "estimated_power": 15.0,
+            "timestamp_ms": 2500
+          },
+          {
+            "type": "jab",
+            "confidence": 0.45,
+            "estimated_velocity": 32.0,
+            "estimated_power": 13.0,
+            "timestamp_ms": 2700
+          },
+          {
+            "type": "jab",
+            "confidence": 0.4,
+            "estimated_velocity": 30.0,
+            "estimated_power": 12.0,
+            "timestamp_ms": 2900
+          },
+          {
+            "type": "jab",
+            "confidence": 0.35,
+            "estimated_velocity": 28.0,
+            "estimated_power": 11.0,
+            "timestamp_ms": 3100
+          },
+          {
+            "type": "jab",
+            "confidence": 0.3,
+            "estimated_velocity": 25.0,
+            "estimated_power": 10.0,
+            "timestamp_ms": 3300
+          }
+        ],
+        "form_notes": {
+          "guard_discipline": 0.8,
+          "rhythm_consistency": 0.7,
+          "observations": "Consistent jabbing rhythm with slight decay in velocity and power over time; guard remains high throughout."
+        }
+      },
+      "tokens": {
+        "prompt_tokens": 573,
+        "completion_tokens": 805,
+        "total_tokens": 1378
+      },
+      "response_time_s": 14.7
+    },
+    {
+      "clip_index": 1,
+      "clip_start_ms": 10000,
+      "clip_end_ms": 20000,
+      "analysis": {
+        "punches": [
+          {
+            "type": "jab",
+            "confidence": 0.95,
+            "estimated_velocity": 60.0,
+            "estimated_power": 40.0,
+            "timestamp_ms": 10000
+          },
+          {
+            "type": "jab",
+            "confidence": 0.92,
+            "estimated_velocity": 55.0,
+            "estimated_power": 35.0,
+            "timestamp_ms": 10200
+          },
+          {
+            "type": "jab",
+            "confidence": 0.9,
+            "estimated_velocity": 50.0,
+            "estimated_power": 30.0,
+            "timestamp_ms": 10400
+          },
+          {
+            "type": "jab",
+            "confidence": 0.88,
+            "estimated_velocity": 45.0,
+            "estimated_power": 25.0,
+            "timestamp_ms": 10600
+          },
+          {
+            "type": "jab",
+            "confidence": 0.85,
+            "estimated_velocity": 40.0,
+            "estimated_power": 20.0,
+            "timestamp_ms": 10800
+          },
+          {
+            "type": "jab",
+            "confidence": 0.82,
+            "estimated_velocity": 35.0,
+            "estimated_power": 15.0,
+            "timestamp_ms": 11000
+          },
+          {
+            "type": "jab",
+            "confidence": 0.8,
+            "estimated_velocity": 30.0,
+            "estimated_power": 10.0,
+            "timestamp_ms": 11200
+          },
+          {
+            "type": "jab",
+            "confidence": 0.78,
+            "estimated_velocity": 25.0,
+            "estimated_power": 8.0,
+            "timestamp_ms": 11400
+          },
+          {
+            "type": "jab",
+            "confidence": 0.75,
+            "estimated_velocity": 20.0,
+            "estimated_power": 5.0,
+            "timestamp_ms": 11600
+          },
+          {
+            "type": "jab",
+            "confidence": 0.72,
+            "estimated_velocity": 15.0,
+            "estimated_power": 3.0,
+            "timestamp_ms": 11800
+          },
+          {
+            "type": "jab",
+            "confidence": 0.7,
+            "estimated_velocity": 10.0,
+            "estimated_power": 1.0,
+            "timestamp_ms": 12000
+          },
+          {
+            "type": "jab",
+            "confidence": 0.68,
+            "estimated_velocity": 5.0,
+            "estimated_power": 0.5,
+            "timestamp_ms": 12200
+          },
+          {
+            "type": "jab",
+            "confidence": 0.65,
+            "estimated_velocity": 3.0,
+            "estimated_power": 0.2,
+            "timestamp_ms": 12400
+          },
+          {
+            "type": "jab",
+            "confidence": 0.63,
+            "estimated_velocity": 1.0,
+            "estimated_power": 0.1,
+            "timestamp_ms": 12600
+          }
+        ],
+        "form_notes": {
+          "guard_discipline": 0.85,
+          "rhythm_consistency": 0.75,
+          "observations": "Consistent jabbing with slight decay in velocity and power over time; guard remains high throughout."
+        }
+      },
+      "tokens": {
+        "prompt_tokens": 739,
+        "completion_tokens": 853,
+        "total_tokens": 1592
+      },
+      "response_time_s": 11.6
+    },
+    {
+      "clip_index": 2,
+      "clip_start_ms": 20000,
+      "clip_end_ms": 30000,
+      "analysis": {
+        "punches": [
+          {
+            "type": "jab",
+            "confidence": 0.9,
+            "estimated_velocity": 60.0,
+            "estimated_power": 30.0,
+            "timestamp_ms": 21000
+          },
+          {
+            "type": "jab",
+            "confidence": 0.85,
+            "estimated_velocity": 55.0,
+            "estimated_power": 25.0,
+            "timestamp_ms": 21500
+          },
+          {
+            "type": "jab",
+            "confidence": 0.9,
+            "estimated_velocity": 65.0,
+            "estimated_power": 35.0,
+            "timestamp_ms": 22000
+          },
+          {
+            "type": "jab",
+            "confidence": 0.8,
+            "estimated_velocity": 50.0,
+            "estimated_power": 20.0,
+            "timestamp_ms": 22500
+          },
+          {
+            "type": "jab",
+            "confidence": 0.85,
+            "estimated_velocity": 55.0,
+            "estimated_power": 25.0,
+            "timestamp_ms": 23000
+          },
+          {
+            "type": "jab",
+            "confidence": 0.9,
+            "estimated_velocity": 60.0,
+            "estimated_power": 30.0,
+            "timestamp_ms": 23500
+          },
+          {
+            "type": "jab",
+            "confidence": 0.85,
+            "estimated_velocity": 55.0,
+            "estimated_power": 25.0,
+            "timestamp_ms": 24000
+          },
+          {
+            "type": "jab",
+            "confidence": 0.9,
+            "estimated_velocity": 60.0,
+            "estimated_power": 30.0,
+            "timestamp_ms": 24500
+          }
+        ],
+        "form_notes": {
+          "guard_discipline": 0.7,
+          "rhythm_consistency": 0.6,
+          "observations": "Consistent jab rhythm with moderate power; guard occasionally drops during movement."
+        }
+      },
+      "tokens": {
+        "prompt_tokens": 1034,
+        "completion_tokens": 516,
+        "total_tokens": 1550
+      },
+      "response_time_s": 15.6
+    }
+  ],
+  "all_punches_combined": [
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 60.0,
+      "estimated_power": 30.0,
+      "timestamp_ms": 1000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.85,
+      "estimated_velocity": 55.0,
+      "estimated_power": 28.0,
+      "timestamp_ms": 1200
+    },
+    {
+      "type": "jab",
+      "confidence": 0.8,
+      "estimated_velocity": 50.0,
+      "estimated_power": 25.0,
+      "timestamp_ms": 1400
+    },
+    {
+      "type": "jab",
+      "confidence": 0.75,
+      "estimated_velocity": 48.0,
+      "estimated_power": 24.0,
+      "timestamp_ms": 1600
+    },
+    {
+      "type": "jab",
+      "confidence": 0.7,
+      "estimated_velocity": 45.0,
+      "estimated_power": 22.0,
+      "timestamp_ms": 1800
+    },
+    {
+      "type": "jab",
+      "confidence": 0.65,
+      "estimated_velocity": 42.0,
+      "estimated_power": 20.0,
+      "timestamp_ms": 1900
+    },
+    {
+      "type": "jab",
+      "confidence": 0.6,
+      "estimated_velocity": 40.0,
+      "estimated_power": 18.0,
+      "timestamp_ms": 2100
+    },
+    {
+      "type": "jab",
+      "confidence": 0.55,
+      "estimated_velocity": 38.0,
+      "estimated_power": 17.0,
+      "timestamp_ms": 2300
+    },
+    {
+      "type": "jab",
+      "confidence": 0.5,
+      "estimated_velocity": 35.0,
+      "estimated_power": 15.0,
+      "timestamp_ms": 2500
+    },
+    {
+      "type": "jab",
+      "confidence": 0.45,
+      "estimated_velocity": 32.0,
+      "estimated_power": 13.0,
+      "timestamp_ms": 2700
+    },
+    {
+      "type": "jab",
+      "confidence": 0.4,
+      "estimated_velocity": 30.0,
+      "estimated_power": 12.0,
+      "timestamp_ms": 2900
+    },
+    {
+      "type": "jab",
+      "confidence": 0.35,
+      "estimated_velocity": 28.0,
+      "estimated_power": 11.0,
+      "timestamp_ms": 3100
+    },
+    {
+      "type": "jab",
+      "confidence": 0.3,
+      "estimated_velocity": 25.0,
+      "estimated_power": 10.0,
+      "timestamp_ms": 3300
+    },
+    {
+      "type": "jab",
+      "confidence": 0.95,
+      "estimated_velocity": 60.0,
+      "estimated_power": 40.0,
+      "timestamp_ms": 10000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.92,
+      "estimated_velocity": 55.0,
+      "estimated_power": 35.0,
+      "timestamp_ms": 10200
+    },
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 50.0,
+      "estimated_power": 30.0,
+      "timestamp_ms": 10400
+    },
+    {
+      "type": "jab",
+      "confidence": 0.88,
+      "estimated_velocity": 45.0,
+      "estimated_power": 25.0,
+      "timestamp_ms": 10600
+    },
+    {
+      "type": "jab",
+      "confidence": 0.85,
+      "estimated_velocity": 40.0,
+      "estimated_power": 20.0,
+      "timestamp_ms": 10800
+    },
+    {
+      "type": "jab",
+      "confidence": 0.82,
+      "estimated_velocity": 35.0,
+      "estimated_power": 15.0,
+      "timestamp_ms": 11000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.8,
+      "estimated_velocity": 30.0,
+      "estimated_power": 10.0,
+      "timestamp_ms": 11200
+    },
+    {
+      "type": "jab",
+      "confidence": 0.78,
+      "estimated_velocity": 25.0,
+      "estimated_power": 8.0,
+      "timestamp_ms": 11400
+    },
+    {
+      "type": "jab",
+      "confidence": 0.75,
+      "estimated_velocity": 20.0,
+      "estimated_power": 5.0,
+      "timestamp_ms": 11600
+    },
+    {
+      "type": "jab",
+      "confidence": 0.72,
+      "estimated_velocity": 15.0,
+      "estimated_power": 3.0,
+      "timestamp_ms": 11800
+    },
+    {
+      "type": "jab",
+      "confidence": 0.7,
+      "estimated_velocity": 10.0,
+      "estimated_power": 1.0,
+      "timestamp_ms": 12000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.68,
+      "estimated_velocity": 5.0,
+      "estimated_power": 0.5,
+      "timestamp_ms": 12200
+    },
+    {
+      "type": "jab",
+      "confidence": 0.65,
+      "estimated_velocity": 3.0,
+      "estimated_power": 0.2,
+      "timestamp_ms": 12400
+    },
+    {
+      "type": "jab",
+      "confidence": 0.63,
+      "estimated_velocity": 1.0,
+      "estimated_power": 0.1,
+      "timestamp_ms": 12600
+    },
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 60.0,
+      "estimated_power": 30.0,
+      "timestamp_ms": 21000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.85,
+      "estimated_velocity": 55.0,
+      "estimated_power": 25.0,
+      "timestamp_ms": 21500
+    },
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 65.0,
+      "estimated_power": 35.0,
+      "timestamp_ms": 22000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.8,
+      "estimated_velocity": 50.0,
+      "estimated_power": 20.0,
+      "timestamp_ms": 22500
+    },
+    {
+      "type": "jab",
+      "confidence": 0.85,
+      "estimated_velocity": 55.0,
+      "estimated_power": 25.0,
+      "timestamp_ms": 23000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 60.0,
+      "estimated_power": 30.0,
+      "timestamp_ms": 23500
+    },
+    {
+      "type": "jab",
+      "confidence": 0.85,
+      "estimated_velocity": 55.0,
+      "estimated_power": 25.0,
+      "timestamp_ms": 24000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 60.0,
+      "estimated_power": 30.0,
+      "timestamp_ms": 24500
+    }
+  ],
+  "punch_summary": {
+    "total": 35,
+    "by_type": {
+      "jab": {
+        "count": 35,
+        "velocities": [
+          60.0,
+          55.0,
+          50.0,
+          48.0,
+          45.0,
+          42.0,
+          40.0,
+          38.0,
+          35.0,
+          32.0,
+          30.0,
+          28.0,
+          25.0,
+          60.0,
+          55.0,
+          50.0,
+          45.0,
+          40.0,
+          35.0,
+          30.0,
+          25.0,
+          20.0,
+          15.0,
+          10.0,
+          5.0,
+          3.0,
+          1.0,
+          60.0,
+          55.0,
+          65.0,
+          50.0,
+          55.0,
+          60.0,
+          55.0,
+          60.0
+        ],
+        "powers": [
+          30.0,
+          28.0,
+          25.0,
+          24.0,
+          22.0,
+          20.0,
+          18.0,
+          17.0,
+          15.0,
+          13.0,
+          12.0,
+          11.0,
+          10.0,
+          40.0,
+          35.0,
+          30.0,
+          25.0,
+          20.0,
+          15.0,
+          10.0,
+          8.0,
+          5.0,
+          3.0,
+          1.0,
+          0.5,
+          0.2,
+          0.1,
+          30.0,
+          25.0,
+          35.0,
+          20.0,
+          25.0,
+          30.0,
+          25.0,
+          30.0
+        ],
+        "avg_velocity": 39.5,
+        "max_velocity": 65.0,
+        "avg_power": 18.8,
+        "max_power": 40.0
+      }
+    }
+  }
+}

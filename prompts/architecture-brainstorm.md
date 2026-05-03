@@ -1,55 +1,100 @@
 # PunchHarder Architecture Brainstorm
 
-## Nemotron Video Batching Strategy
+## Round Structure
+- 1 round = 30 seconds of active shadowboxing
+- During round: batch 10-second video clips to Nemotron (3 clips per round)
+- Each clip includes punch summary JSON alongside video
+- After round ends: final summary model call aggregates all clip feedback into one report
 
-### Problem
-Send video to Nemotron for form feedback. Needs to feel live but not spam the API.
+## Nemotron Batching (Locked: Option C — Hybrid)
+- **Min interval**: 10s
+- **Max interval**: 30s
+- **Punch threshold**: 8 punches (triggers early if min interval passed)
+- All configurable via settings/env vars
+- FE keeps rolling MediaRecorder buffer, slices on demand
 
-### Option A: Fixed Interval (e.g. every 15s)
-- Simple timer, sends last N seconds of video
-- Predictable API cost
-- Feedback arrives in chunks, may feel delayed
-
-### Option B: Punch-Count Triggered (e.g. every 10 punches)
-- Feedback correlates to activity bursts
-- Idle periods = no wasted calls
-- Uneven timing — could be 5s or 60s between calls
-
-### Option C: Hybrid (timer + punch threshold, whichever comes first)
-- Configurable: `minIntervalSec`, `maxIntervalSec`, `punchThreshold`
-- Defaults: min 10s, max 30s, threshold 8 punches
-- Debounce: if last feedback was <minInterval ago, queue it
-- Best of both — responsive during action, quiet during rest
-
-### Video Clip Constraints
-- Max clip length: 15-30s (Nemotron input limits TBD, need to test)
-- Resolution: downscale to 480p or 720p before sending
-- Format: mp4 (h264) or webm
-- FE maintains a rolling buffer (MediaRecorder), slices on demand
-
-### Payload to Nemotron
-```
-Video clip (mp4/webm binary)
-+ JSON context:
+## Clip Payload → Nemotron
+```json
 {
-  "punches": [
-    { "type": "jab", "velocity": 12.3, "timestamp_ms": 1420 },
-    ...
-  ],
+  "session_id": "abc123",
+  "round_number": 1,
+  "clip_index": 0,
   "clip_start_ms": 0,
-  "clip_end_ms": 15000,
-  "session_id": "abc123"
+  "clip_end_ms": 10000,
+  "video": "<base64 or multipart binary>",
+  "punches": [
+    {
+      "type": "jab",
+      "confidence": 0.92,
+      "velocity": 12.3,
+      "power": 78.5,
+      "timestamp_ms": 1420
+    }
+  ]
 }
 ```
 
-### Testing Plan
-- **Unit**: Mock Nemotron endpoint, test batching logic fires at correct intervals
-- **Integration**: Record a 60s test video, replay frames through the system, verify N feedback responses come back
-- **Rate/size**: Log payload sizes and API call frequency during a real session
-- **Latency**: Measure round-trip from clip-send to feedback-received
-- **Config surface**: Expose batching params in a settings panel or env vars for tuning
+## Feedback Schema — Per-Clip (from Nemotron)
+```json
+{
+  "clip_index": 0,
+  "clip_summary": "Good jab speed but dropping guard after hooks.",
+  "form_notes": {
+    "jab": { "score": 82, "note": "Extend fully, snap back faster" },
+    "hook": { "score": 61, "note": "Dropping left hand after throw" }
+  },
+  "guard_discipline": 0.65,
+  "rhythm_consistency": 0.78
+}
+```
 
-### Open Questions
-- [ ] What is Nemotron's actual max video input size/duration?
-- [ ] Does Nemotron accept video directly or do we need to extract frames?
-- [ ] Should feedback accumulate across the session (send prior context)?
+## Feedback Schema — Round Summary (aggregated by summary model)
+```json
+{
+  "session_id": "abc123",
+  "round_number": 1,
+  "overall_score": 74,
+  "level": "intermediate",
+  "overall_advice": "Focus on keeping your guard up between combinations. Your jab is fast but your hooks need more hip rotation.",
+  "punch_stats": {
+    "total": 23,
+    "by_type": {
+      "jab": { "count": 12, "avg_power": 65.2, "max_power": 89.1 },
+      "cross": { "count": 6, "avg_power": 72.0, "max_power": 95.3 },
+      "hook": { "count": 4, "avg_power": 58.7, "max_power": 71.2 },
+      "uppercut": { "count": 1, "avg_power": 44.0, "max_power": 44.0 }
+    }
+  },
+  "form_by_type": {
+    "jab": { "score": 82, "improvements": ["Snap hand back faster", "Keep chin tucked"] },
+    "cross": { "score": 76, "improvements": ["Rotate hips more", "Full extension"] },
+    "hook": { "score": 61, "improvements": ["Dropping guard after throw", "Tighten elbow angle"] },
+    "uppercut": { "score": 55, "improvements": ["Drive from legs not arm", "Keep other hand up"] }
+  },
+  "combos_detected": ["jab-cross", "jab-cross-hook", "jab-jab"],
+  "guard_discipline": 0.65,
+  "rhythm_consistency": 0.72
+}
+```
+
+## Testing Plan (No FE Required)
+1. Record 2-3 mock shadowboxing clips (phone camera, 10s each)
+2. Create mock punch data JSON (timestamps, types, velocities, confidence)
+3. Build a Python test script that:
+   - Sends clip + mock data to Nemotron endpoint
+   - Validates response parses into feedback schema
+   - Measures latency per clip
+4. Build batching simulator:
+   - Replays a 30s session as 3 × 10s clips
+   - Fires them at correct intervals
+   - Collects per-clip feedback
+   - Sends all 3 to summary model
+   - Outputs final round summary
+5. Validate: schema correctness, latency, token usage, output quality
+
+## Open Questions
+- [ ] Nemotron max video input size/duration?
+- [ ] Does Nemotron accept raw video or need extracted frames?
+- [ ] How to compute "power" from velocity + pose data?
+- [ ] Should feedback accumulate across rounds (session memory)?
+- [ ] Combo detection: FE-side pattern matching or Nemotron responsibility?

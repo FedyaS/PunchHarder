@@ -1,0 +1,72 @@
+{
+  "clip_end_ms": 9967,
+  "clip_index": 1,
+  "clip_start_ms": 0,
+  "punches": [
+    {
+      "end_ms": 434,
+      "start_ms": 122,
+      "type": "cross"
+    },
+    {
+      "end_ms": 1275,
+      "start_ms": 922,
+      "type": "cross"
+    },
+    {
+      "end_ms": 1710,
+      "start_ms": 1509,
+      "type": "hook"
+    },
+    {
+      "end_ms": 2261,
+      "start_ms": 1770,
+      "type": "hook"
+    },
+    {
+      "end_ms": 3549,
+      "start_ms": 2996,
+      "type": "jab"
+    },
+    {
+      "end_ms": 4421,
+      "start_ms": 4235,
+      "type": "hook"
+    },
+    {
+      "end_ms": 5020,
+      "start_ms": 4748,
+      "type": "uppercut"
+    },
+    {
+      "end_ms": 5316,
+      "start_ms": 5229,
+      "type": "hook"
+    },
+    {
+      "end_ms": 6120,
+      "start_ms": 5529,
+      "type": "hook"
+    },
+    {
+      "end_ms": 6973,
+      "start_ms": 6572,
+      "type": "uppercut"
+    },
+    {
+      "end_ms": 7390,
+      "start_ms": 7212,
+      "type": "uppercut"
+    },
+    {
+      "end_ms": 8402,
+      "start_ms": 7468,
+      "type": "cross"
+    },
+    {
+      "end_ms": 8949,
+      "start_ms": 8689,
+      "type": "jab"
+    }
+  ]
+}

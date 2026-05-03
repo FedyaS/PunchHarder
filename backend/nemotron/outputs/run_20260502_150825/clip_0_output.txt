@@ -1,0 +1,102 @@
+=== RESPONSE ===
+
+{
+  "punches": [
+    {
+      "type": "jab",
+      "confidence": 0.9,
+      "estimated_velocity": 60.0,
+      "estimated_power": 30.0,
+      "timestamp_ms": 1000
+    },
+    {
+      "type": "jab",
+      "confidence": 0.85,
+      "estimated_velocity": 55.0,
+      "estimated_power": 28.0,
+      "timestamp_ms": 1200
+    },
+    {
+      "type": "jab",
+      "confidence": 0.8,
+      "estimated_velocity": 50.0,
+      "estimated_power": 25.0,
+      "timestamp_ms": 1400
+    },
+    {
+      "type": "jab",
+      "confidence": 0.75,
+      "estimated_velocity": 48.0,
+      "estimated_power": 24.0,
+      "timestamp_ms": 1600
+    },
+    {
+      "type": "jab",
+      "confidence": 0.7,
+      "estimated_velocity": 45.0,
+      "estimated_power": 22.0,
+      "timestamp_ms": 1800
+    },
+    {
+      "type": "jab",
+      "confidence": 0.65,
+      "estimated_velocity": 42.0,
+      "estimated_power": 20.0,
+      "timestamp_ms": 1900
+    },
+    {
+      "type": "jab",
+      "confidence": 0.6,
+      "estimated_velocity": 40.0,
+      "estimated_power": 18.0,
+      "timestamp_ms": 2100
+    },
+    {
+      "type": "jab",
+      "confidence": 0.55,
+      "estimated_velocity": 38.0,
+      "estimated_power": 17.0,
+      "timestamp_ms": 2300
+    },
+    {
+      "type": "jab",
+      "confidence": 0.5,
+      "estimated_velocity": 35.0,
+      "estimated_power": 15.0,
+      "timestamp_ms": 2500
+    },
+    {
+      "type": "jab",
+      "confidence": 0.45,
+      "estimated_velocity": 32.0,
+      "estimated_power": 13.0,
+      "timestamp_ms": 2700
+    },
+    {
+      "type": "jab",
+      "confidence": 0.4,
+      "estimated_velocity": 30.0,
+      "estimated_power": 12.0,
+      "timestamp_ms": 2900
+    },
+    {
+      "type": "jab",
+      "confidence": 0.35,
+      "estimated_velocity": 28.0,
+      "estimated_power": 11.0,
+      "timestamp_ms": 3100
+    },
+    {
+      "type": "jab",
+      "confidence": 0.3,
+      "estimated_velocity": 25.0,
+      "estimated_power": 10.0,
+      "timestamp_ms": 3300
+    }
+  ],
+  "form_notes": {
+    "guard_discipline": 0.8,
+    "rhythm_consistency": 0.7,
+    "observations": "Consistent jabbing rhythm with slight decay in velocity and power over time; guard remains high throughout."
+  }
+}
