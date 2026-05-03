@@ -108,8 +108,18 @@ export default function LiveAnalysisPage({ embedded = false }) {
                     <div className="font-body-md text-xs opacity-70">Detected punches in this live session.</div>
                   </div>
                 </div>
-                <div className="font-headline-display text-5xl text-primary font-extrabold">
-                  {metrics?.punchCount ?? 0}
+                <div className="flex items-center gap-3">
+                  <div className="font-headline-display text-5xl text-primary font-extrabold">
+                    {metrics?.punchCount ?? 0}
+                  </div>
+                  <button
+                    type="button"
+                    className="pointer-events-auto rounded-lg border border-primary/30 bg-surface-container-low/80 p-2 text-on-surface-variant backdrop-blur-md transition-all hover:bg-error-container hover:text-on-error-container active:scale-90"
+                    title="Reset punch count"
+                    onClick={() => liveCameraRef.current?.resetPunchCount()}
+                  >
+                    <span className="material-symbols-outlined text-xl">restart_alt</span>
+                  </button>
                 </div>
               </div>
             </div>
