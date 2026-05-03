@@ -1,4 +1,5 @@
 import LiveAnalysisPage from './pages/LiveAnalysisPage.jsx'
+import { PixelWordmark } from './components/PixelWordmark.jsx'
 
 export default function App() {
   return (
@@ -7,10 +8,10 @@ export default function App() {
         <header className="relative overflow-hidden rounded-2xl border border-surface-container-highest bg-surface-container-low/80 p-6 shadow-2xl shadow-black/20">
           <div className="relative z-10 grid items-center gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.8fr)]">
             <div>
-              <h1 className="mt-3 font-headline-display text-4xl font-black uppercase tracking-tighter text-white sm:text-6xl">
-                PunchHarder
+              <h1 className="mt-3 mb-5 max-w-3xl text-white leading-none">
+                <PixelWordmark className="w-full max-w-[42rem]" />
               </h1>
-              <p className="font-label-bold text-xs uppercase tracking-[0.35em] text-primary">
+              <p className="font-label-bold text-xs uppercase leading-relaxed tracking-[0.35em] text-primary">
                 Live Analysis & Replay
               </p>
 
