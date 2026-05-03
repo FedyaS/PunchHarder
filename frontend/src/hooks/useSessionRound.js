@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react'
 
 const CLIP_DURATION_MS = 5000
 const NUM_CLIPS = 3
@@ -63,7 +63,14 @@ function postClip(sessionId, clipIndex, videoBlob, punches, clipStartMs, clipEnd
  * @param {boolean} [opts.testMode] – skip camera, replay a saved session
  * @param {string|null} [opts.testSessionId] – session to replay in test mode
  */
+function createSfx(src) {
+  const audio = new Audio(src)
+  audio.preload = 'auto'
+  return audio
+}
+
 export function useSessionRound({ liveCameraRef, testMode = false, testSessionId = null }) {
+  const sfx = useMemo(() => ({ start: createSfx('/start.mp3'), end: createSfx('/end.mp3') }), [])
   const [phase, setPhase] = useState('idle')
   const [countdown, setCountdown] = useState(0)
   const [timeLeft, setTimeLeft] = useState(0)
@@ -162,6 +169,8 @@ export function useSessionRound({ liveCameraRef, testMode = false, testSessionId
   }, [liveCameraRef, startRecorderForClip])
 
   const finishRecording = useCallback(async (sid) => {
+    sfx.end.currentTime = 0
+    sfx.end.play().catch(() => {})
     cleanup()
     setPhase('processing')
     phaseRef.current = 'processing'
@@ -198,7 +207,7 @@ export function useSessionRound({ liveCameraRef, testMode = false, testSessionId
       setPhase('idle')
       phaseRef.current = 'idle'
     }
-  }, [cleanup])
+  }, [cleanup, sfx])
   finishRecordingRef.current = finishRecording
 
   const startTestRound = useCallback(async () => {
@@ -213,6 +222,9 @@ export function useSessionRound({ liveCameraRef, testMode = false, testSessionId
     const sid = testSessionId
     sessionIdRef.current = sid
     setSessionId(sid)
+
+    sfx.start.currentTime = 0
+    sfx.start.play().catch(() => {})
 
     // Quick countdown
     setPhase('countdown')
@@ -247,6 +259,8 @@ export function useSessionRound({ liveCameraRef, testMode = false, testSessionId
 
         // After the fake recording animation, fire the resend
         setTimeout(async () => {
+          sfx.end.currentTime = 0
+          sfx.end.play().catch(() => {})
           cleanup()
           setPhase('processing')
           phaseRef.current = 'processing'
@@ -270,7 +284,7 @@ export function useSessionRound({ liveCameraRef, testMode = false, testSessionId
         }, totalMs)
       }
     }, 1000)
-  }, [testSessionId, cleanup])
+  }, [testSessionId, cleanup, sfx])
 
   const startRound = useCallback(async () => {
     if (testMode) {
@@ -311,6 +325,9 @@ export function useSessionRound({ liveCameraRef, testMode = false, testSessionId
     sessionIdRef.current = sid
     setSessionId(sid)
 
+    sfx.start.currentTime = 0
+    sfx.start.play().catch(() => {})
+
     // Countdown phase
     setPhase('countdown')
     phaseRef.current = 'countdown'
@@ -326,7 +343,7 @@ export function useSessionRound({ liveCameraRef, testMode = false, testSessionId
         beginRecording(stream, sid)
       }
     }, 1000)
-  }, [liveCameraRef, testMode, startTestRound]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [liveCameraRef, testMode, startTestRound, sfx]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const beginRecording = useCallback((stream, sid) => {
     setPhase('recording')
