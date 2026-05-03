@@ -59,6 +59,22 @@ def analysis_by_run(run_id):
         return jsonify(json.load(f))
 
 
+def _latest_coaching_run_dir():
+    """Most recently modified nemotron/outputs/coaching_* directory."""
+    if not os.path.isdir(NEMOTRON_OUTPUTS):
+        return None
+    candidates = []
+    for name in os.listdir(NEMOTRON_OUTPUTS):
+        if not name.startswith("coaching_"):
+            continue
+        path = os.path.join(NEMOTRON_OUTPUTS, name)
+        if os.path.isdir(path):
+            candidates.append(path)
+    if not candidates:
+        return None
+    return max(candidates, key=os.path.getmtime)
+
+
 @app.route("/api/replay/clips")
 def replay_clips():
     clips = []
@@ -68,6 +84,23 @@ def replay_clips():
             with open(json_path, "r", encoding="utf-8") as f:
                 clips.append(json.load(f))
     return jsonify(clips)
+
+
+@app.route("/api/replay/coaching/<int:clip_index>")
+def replay_coaching(clip_index):
+    run_dir = _latest_coaching_run_dir()
+    if not run_dir:
+        return jsonify({"error": "no coaching run"}), 404
+    txt_path = os.path.join(run_dir, f"clip_{clip_index}_coaching.txt")
+    if not os.path.isfile(txt_path):
+        return jsonify({"error": "no coaching file for clip"}), 404
+    with open(txt_path, "r", encoding="utf-8") as f:
+        text = f.read()
+    return jsonify({
+        "clip_index": clip_index,
+        "run_dir": os.path.basename(run_dir),
+        "text": text,
+    })
 
 
 LABELS_DIR = os.path.join(os.path.dirname(__file__), "nemotron", "labels")
