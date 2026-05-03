@@ -119,31 +119,54 @@ function parseCoachingIssues(raw) {
   return issues
 }
 
-function PunchOverlay({ punch, visible }) {
-  if (!visible) return null
-  const color = PUNCH_COLORS[punch.type] || '#6b7280'
+/** Live punch type + metrics below the video (same layout whether idle or active — avoids layout shift). */
+function ActivePunchReadout({ punch }) {
+  const color = punch ? PUNCH_COLORS[punch.type] || '#6b7280' : '#6b7280'
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none animate-punch-flash">
-      <div className="text-center">
-        <div className="text-6xl font-black uppercase tracking-wider" style={{ color, textShadow: `0 0 40px ${color}80` }}>
-          {punch.type}
+    <div className="mt-3 rounded-xl border border-gray-700 bg-gray-900/80 px-4 py-3">
+      <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-2">Active punch</p>
+      <div className="flex flex-wrap items-end gap-6 gap-y-3">
+        <div className="min-w-[7rem]">
+          <span className="text-gray-500 text-xs block mb-0.5">Type</span>
+          <span
+            className="text-2xl font-black uppercase tracking-wide block leading-none min-h-[2rem] flex items-center"
+            style={{ color: punch ? color : undefined }}
+          >
+            {punch ? (
+              punch.type
+            ) : (
+              <span className="text-gray-600 font-normal text-lg normal-case tracking-normal">—</span>
+            )}
+          </span>
         </div>
-        <div className="mt-3 flex gap-6 justify-center">
-          <div className="bg-black/70 backdrop-blur rounded-lg px-4 py-2">
-            <span className="text-gray-400 text-sm block">Velocity</span>
-            <span className="text-white text-2xl font-bold">{punch.velocity_mps} m/s</span>
+        <div className="flex flex-wrap gap-6">
+          <div className="min-w-[4.5rem]">
+            <span className="text-gray-500 text-xs block">Velocity</span>
+            <span className="text-white text-xl font-bold tabular-nums block min-h-[1.75rem] leading-none flex items-end">
+              {punch ? `${punch.velocity_mps} m/s` : '—'}
+            </span>
           </div>
-          <div className="bg-black/70 backdrop-blur rounded-lg px-4 py-2">
-            <span className="text-gray-400 text-sm block">Power</span>
-            <span className="text-white text-2xl font-bold">{punch.power_score}</span>
+          <div className="min-w-[3.5rem]">
+            <span className="text-gray-500 text-xs block">Power</span>
+            <span className="text-white text-xl font-bold tabular-nums block min-h-[1.75rem] leading-none flex items-end">
+              {punch ? punch.power_score : '—'}
+            </span>
           </div>
-          <div className="bg-black/70 backdrop-blur rounded-lg px-4 py-2">
-            <span className="text-gray-400 text-sm block">Confidence</span>
-            <span className="text-white text-2xl font-bold">{(punch.yolo_confidence * 100).toFixed(0)}%</span>
+          <div className="min-w-[4rem]">
+            <span className="text-gray-500 text-xs block">Confidence</span>
+            <span className="text-white text-xl font-bold tabular-nums block min-h-[1.75rem] leading-none flex items-end">
+              {punch ? `${(punch.yolo_confidence * 100).toFixed(0)}%` : '—'}
+            </span>
           </div>
         </div>
       </div>
+      <p
+        className={`text-xs mt-2 min-h-[1.25rem] text-gray-600 ${punch ? 'invisible select-none' : ''}`}
+        aria-hidden={!!punch}
+      >
+        Scrub or play to align the playhead with a punch timestamp.
+      </p>
     </div>
   )
 }
@@ -493,7 +516,6 @@ function ClipPlayer({ clip, index, coachingText }) {
           preload="auto"
           playsInline
         />
-        <PunchOverlay punch={activePunch} visible={!!activePunch} />
         {loopIssue && (
           <div className="absolute bottom-3 left-3 right-3 pointer-events-none">
             <div className="bg-black/75 border border-amber-500/50 rounded-lg px-3 py-2 text-amber-100 text-xs font-medium backdrop-blur-sm">
@@ -502,6 +524,8 @@ function ClipPlayer({ clip, index, coachingText }) {
           </div>
         )}
       </div>
+
+      <ActivePunchReadout punch={activePunch} />
 
       <div className="flex items-center gap-2 mt-4">
         <button onClick={() => seek(-2)} className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium rounded-lg border border-gray-700 transition-colors">-2s</button>
