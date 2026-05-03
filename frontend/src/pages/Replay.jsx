@@ -148,7 +148,7 @@ function PunchOverlay({ punch, visible }) {
   )
 }
 
-function PunchTimeline({ punches, currentTimeMs, clipStartMs, duration, issues }) {
+function PunchTimeline({ punches, currentTimeMs, clipStartMs, duration, issues, currentIssue }) {
   return (
     <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 mt-4">
       <div className="relative h-8">
@@ -157,17 +157,20 @@ function PunchTimeline({ punches, currentTimeMs, clipStartMs, duration, issues }
           className="absolute top-0 bottom-0 w-0.5 bg-emerald-400 z-10 transition-all duration-100"
           style={{ left: `${(currentTimeMs / duration) * 100}%` }}
         />
-        {issues.map((iss) => (
-          <div
-            key={`band-${iss.id}`}
-            className="absolute top-0 bottom-0 z-[1] rounded-sm opacity-50"
-            style={{
-              left: `${(iss.startMs / duration) * 100}%`,
-              width: `${((iss.endMs - iss.startMs) / duration) * 100}%`,
-              background: 'rgba(251, 191, 36, 0.25)',
-            }}
-          />
-        ))}
+        {issues.map((iss) => {
+          const isCurrent = currentIssue && iss.id === currentIssue.id
+          return (
+            <div
+              key={`band-${iss.id}`}
+              className={`absolute top-0 bottom-0 z-[1] rounded-sm ${isCurrent ? 'opacity-90 ring-1 ring-amber-400 ring-inset' : 'opacity-45'}`}
+              style={{
+                left: `${(iss.startMs / duration) * 100}%`,
+                width: `${((iss.endMs - iss.startMs) / duration) * 100}%`,
+                background: 'rgba(251, 191, 36, 0.28)',
+              }}
+            />
+          )
+        })}
         {punches.map((p, i) => {
           const relTime = p.timestamp_ms - clipStartMs
           const left = (relTime / duration) * 100
@@ -225,8 +228,18 @@ function PunchLog({ punches, currentTimeMs, clipStartMs }) {
   )
 }
 
-function CoachingIssuesPanel({ issues, loopIssue, onSelectLoop, onClearLoop, clipDurationMs }) {
-  if (!issues.length) {
+function CoachingIssuesPanel({
+  sortedIssues,
+  issueIndex,
+  onPrev,
+  onNext,
+  currentIssue,
+  loopIssue,
+  onSelectLoop,
+  onClearLoop,
+  clipDurationMs,
+}) {
+  if (!sortedIssues.length) {
     return (
       <div className="bg-gray-900/40 border border-gray-800 rounded-xl p-4 mt-4">
         <h3 className="text-white font-semibold text-sm mb-1">Coach feedback</h3>
@@ -235,71 +248,133 @@ function CoachingIssuesPanel({ issues, loopIssue, onSelectLoop, onClearLoop, cli
     )
   }
 
+  const total = sortedIssues.length
+  const atStart = issueIndex <= 0
+  const atEnd = issueIndex >= total - 1
+  const iss = currentIssue
+  const span = iss ? iss.endMs - iss.startMs : 0
+  const pct = clipDurationMs > 0 && iss ? ((span / clipDurationMs) * 100).toFixed(0) : 0
+  const looping = iss && loopIssue?.id === iss.id
+
   return (
     <div className="bg-gray-900/40 border border-amber-900/30 rounded-xl p-4 mt-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-white font-semibold text-sm">Coach feedback — flagged segments</h3>
-        {loopIssue && (
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <h3 className="text-white font-semibold text-sm">Coach feedback</h3>
+        <div className="flex items-center gap-2">
+          <span className="text-gray-500 text-xs font-mono tabular-nums">
+            {issueIndex + 1} / {total}
+          </span>
+          {loopIssue && (
+            <button
+              type="button"
+              onClick={onClearLoop}
+              className="text-xs px-2 py-1 rounded-md bg-gray-800 text-amber-200 border border-amber-800/50 hover:bg-gray-700"
+            >
+              Stop loop
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 mb-4">
+        <button
+          type="button"
+          onClick={onPrev}
+          disabled={atStart}
+          className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-gray-800 hover:bg-gray-700 text-white border-gray-700"
+        >
+          Previous
+        </button>
+        <button
+          type="button"
+          onClick={onNext}
+          disabled={atEnd}
+          className="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-gray-800 hover:bg-gray-700 text-white border-gray-700"
+        >
+          Next
+        </button>
+        <span className="text-[11px] text-gray-500 ml-auto hidden sm:inline">Chronological order</span>
+      </div>
+
+      {iss && (
+        <div
+          className={`rounded-lg border p-4 transition-colors ${
+            looping ? 'border-amber-400 bg-amber-950/40' : 'border-gray-700 bg-gray-800/40'
+          }`}
+        >
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <span className="text-amber-200/90 font-medium text-sm">{iss.category}</span>
+            <span className="text-gray-500 text-xs font-mono">
+              {(iss.startMs / 1000).toFixed(2)}s – {(iss.endMs / 1000).toFixed(2)}s
+            </span>
+            <span className="text-gray-600 text-xs">({pct}% of clip)</span>
+          </div>
+          <p className="text-gray-300 text-sm leading-relaxed mb-3">{iss.rationale}</p>
           <button
             type="button"
-            onClick={onClearLoop}
-            className="text-xs px-2 py-1 rounded-md bg-gray-800 text-amber-200 border border-amber-800/50 hover:bg-gray-700"
+            onClick={() => onSelectLoop(iss)}
+            className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
+              looping
+                ? 'bg-amber-500 text-black border-amber-400'
+                : 'bg-gray-900 text-amber-100 border-amber-800/60 hover:bg-gray-800'
+            }`}
           >
-            Stop loop
+            {looping ? 'Looping this segment' : 'Loop this segment'}
           </button>
-        )}
-      </div>
-      <ul className="space-y-3">
-        {issues.map((iss) => {
-          const active = loopIssue?.id === iss.id
-          const span = iss.endMs - iss.startMs
-          const pct = clipDurationMs > 0 ? ((span / clipDurationMs) * 100).toFixed(0) : 0
-          return (
-            <li
-              key={iss.id}
-              className={`rounded-lg border p-3 transition-colors ${
-                active ? 'border-amber-400 bg-amber-950/40' : 'border-gray-700 bg-gray-800/40'
-              }`}
-            >
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <span className="text-amber-200/90 font-medium text-sm">{iss.category}</span>
-                <span className="text-gray-500 text-xs font-mono">
-                  {(iss.startMs / 1000).toFixed(2)}s – {(iss.endMs / 1000).toFixed(2)}s
-                </span>
-                <span className="text-gray-600 text-xs">({pct}% of clip)</span>
-              </div>
-              <p className="text-gray-300 text-sm leading-relaxed mb-2">{iss.rationale}</p>
-              <button
-                type="button"
-                onClick={() => onSelectLoop(iss)}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
-                  active
-                    ? 'bg-amber-500 text-black border-amber-400'
-                    : 'bg-gray-800 text-amber-100 border-amber-800/60 hover:bg-gray-700'
-                }`}
-              >
-                {active ? 'Looping this segment' : 'Loop this segment'}
-              </button>
-            </li>
-          )
-        })}
-      </ul>
+        </div>
+      )}
     </div>
   )
 }
 
 function ClipPlayer({ clip, index, coachingText }) {
   const videoRef = useRef(null)
+  const skipSeekForCoachStep = useRef(true)
   const [videoUrl, setVideoUrl] = useState(null)
   const [currentTimeMs, setCurrentTimeMs] = useState(0)
   const [activePunch, setActivePunch] = useState(null)
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeedState] = useState(1)
   const [loopIssue, setLoopIssue] = useState(null)
+  const [issueIndex, setIssueIndex] = useState(0)
 
   const issues = useMemo(() => parseCoachingIssues(coachingText || ''), [coachingText])
 
+  const sortedIssues = useMemo(() => {
+    return [...issues].sort((a, b) => a.startMs - b.startMs || a.endMs - b.endMs || String(a.id).localeCompare(String(b.id)))
+  }, [issues])
+
+  const currentCoachIssue = sortedIssues[issueIndex] ?? null
+
   const clipDuration = clip.clip_end_ms - clip.clip_start_ms
+
+  useEffect(() => {
+    setIssueIndex(0)
+    skipSeekForCoachStep.current = true
+  }, [coachingText])
+
+  useEffect(() => {
+    if (!sortedIssues.length) return
+    setIssueIndex((i) => Math.min(i, Math.max(0, sortedIssues.length - 1)))
+  }, [sortedIssues.length])
+
+  useEffect(() => {
+    const iss = sortedIssues[issueIndex]
+    if (!iss || !videoRef.current) return
+    if (skipSeekForCoachStep.current) {
+      skipSeekForCoachStep.current = false
+      return
+    }
+    videoRef.current.currentTime = iss.startMs / 1000
+  }, [issueIndex, sortedIssues])
+
+  useEffect(() => {
+    if (!loopIssue || !sortedIssues.length) return
+    const cur = sortedIssues[issueIndex]
+    if (cur && loopIssue.id !== cur.id) {
+      setLoopIssue(cur)
+    }
+  }, [issueIndex, sortedIssues, loopIssue])
 
   useEffect(() => {
     let url
@@ -376,6 +451,19 @@ function ClipPlayer({ clip, index, coachingText }) {
     setLoopIssue(null)
   }, [])
 
+  const goPrevIssue = useCallback(() => {
+    skipSeekForCoachStep.current = false
+    setIssueIndex((i) => Math.max(0, i - 1))
+  }, [])
+
+  const goNextIssue = useCallback(() => {
+    skipSeekForCoachStep.current = false
+    setIssueIndex((i) => {
+      if (sortedIssues.length === 0) return 0
+      return Math.min(sortedIssues.length - 1, i + 1)
+    })
+  }, [sortedIssues.length])
+
   if (!videoUrl) {
     return (
       <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
@@ -444,16 +532,19 @@ function ClipPlayer({ clip, index, coachingText }) {
       </div>
 
       <div className="mt-3 h-3 bg-gray-800 rounded-full cursor-pointer relative overflow-hidden" onClick={onScrub}>
-        {issues.map((iss) => (
-          <div
-            key={`scrub-${iss.id}`}
-            className="absolute top-0 bottom-0 bg-amber-500/25 border-x border-amber-500/30 pointer-events-none z-[1]"
-            style={{
-              left: `${(iss.startMs / clipDuration) * 100}%`,
-              width: `${((iss.endMs - iss.startMs) / clipDuration) * 100}%`,
-            }}
-          />
-        ))}
+        {sortedIssues.map((iss) => {
+          const isCurrent = currentCoachIssue && iss.id === currentCoachIssue.id
+          return (
+            <div
+              key={`scrub-${iss.id}`}
+              className={`absolute top-0 bottom-0 pointer-events-none z-[1] ${isCurrent ? 'bg-amber-500/40 ring-1 ring-amber-400/50' : 'bg-amber-500/25 border-x border-amber-500/30'}`}
+              style={{
+                left: `${(iss.startMs / clipDuration) * 100}%`,
+                width: `${((iss.endMs - iss.startMs) / clipDuration) * 100}%`,
+              }}
+            />
+          )
+        })}
         <div
           className="relative z-[2] h-full bg-emerald-500/30 rounded-full pointer-events-none"
           style={{ width: `${(currentTimeMs / clipDuration) * 100}%` }}
@@ -469,11 +560,16 @@ function ClipPlayer({ clip, index, coachingText }) {
         currentTimeMs={currentTimeMs}
         clipStartMs={clip.clip_start_ms}
         duration={clipDuration}
-        issues={issues}
+        issues={sortedIssues}
+        currentIssue={currentCoachIssue}
       />
 
       <CoachingIssuesPanel
-        issues={issues}
+        sortedIssues={sortedIssues}
+        issueIndex={issueIndex}
+        onPrev={goPrevIssue}
+        onNext={goNextIssue}
+        currentIssue={currentCoachIssue}
         loopIssue={loopIssue}
         onSelectLoop={onSelectLoop}
         onClearLoop={onClearLoop}
