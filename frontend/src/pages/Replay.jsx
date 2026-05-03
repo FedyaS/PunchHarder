@@ -608,6 +608,7 @@ function ClipPlayer({ clip, index, coachingText }) {
 export default function Replay() {
   const [clips, setClips] = useState([])
   const [coachingByIndex, setCoachingByIndex] = useState({})
+  const [clipIndex, setClipIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -642,6 +643,10 @@ export default function Replay() {
     }
   }, [clips])
 
+  useEffect(() => {
+    setClipIndex((i) => Math.min(i, Math.max(0, clips.length - 1)))
+  }, [clips.length])
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
@@ -658,21 +663,64 @@ export default function Replay() {
     )
   }
 
+  if (!clips.length) {
+    return (
+      <div className="min-h-screen bg-gray-950 text-white">
+        <div className="max-w-4xl mx-auto px-6 py-10">
+          <h1 className="text-3xl font-bold">Punch Replay</h1>
+          <p className="text-gray-500 mt-2">No replay clips found. Add mock_inputs clip JSON and MP4 files on the server.</p>
+        </div>
+      </div>
+    )
+  }
+
+  const totalClips = clips.length
+  const activeClip = clips[clipIndex]
+  const atFirstClip = clipIndex <= 0
+  const atLastClip = totalClips > 0 && clipIndex >= totalClips - 1
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <div className="max-w-4xl mx-auto px-6 py-10">
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-3xl font-bold">Punch Replay</h1>
           <p className="text-gray-500 text-sm mt-1">
-            Slow-mo playback with punch overlay &middot; Nemotron-flagged ranges on the timeline (amber) &middot; {clips.length} clips
+            One clip at a time &middot; Nemotron-flagged ranges on the timeline (amber) &middot; use Previous / Next clip to move between segments
           </p>
         </div>
 
-        <div className="space-y-8">
-          {clips.map((clip, i) => (
-            <ClipPlayer key={i} clip={clip} index={i} coachingText={coachingByIndex[i]} />
-          ))}
-        </div>
+        {totalClips > 1 && (
+          <div className="flex flex-wrap items-center gap-3 mb-6 rounded-xl border border-gray-800 bg-gray-900/50 px-4 py-3">
+            <button
+              type="button"
+              onClick={() => setClipIndex((i) => Math.max(0, i - 1))}
+              disabled={atFirstClip}
+              className="px-4 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-gray-800 hover:bg-gray-700 text-white border-gray-700"
+            >
+              Previous clip
+            </button>
+            <button
+              type="button"
+              onClick={() => setClipIndex((i) => Math.min(totalClips - 1, i + 1))}
+              disabled={atLastClip}
+              className="px-4 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-gray-800 hover:bg-gray-700 text-white border-gray-700"
+            >
+              Next clip
+            </button>
+            <span className="text-gray-400 text-sm font-mono tabular-nums ml-auto">
+              Clip {clipIndex + 1} / {totalClips}
+            </span>
+          </div>
+        )}
+
+        {activeClip && (
+          <ClipPlayer
+            key={clipIndex}
+            clip={activeClip}
+            index={clipIndex}
+            coachingText={coachingByIndex[clipIndex]}
+          />
+        )}
       </div>
     </div>
   )
