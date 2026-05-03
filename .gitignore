@@ -6,3 +6,5 @@ __pycache__/
 *.pyc
 venv/
 .env
+training_data/merged_yolo/
+backend/eval_output/frames/*
