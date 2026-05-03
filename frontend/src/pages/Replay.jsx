@@ -420,6 +420,10 @@ function CoachingIssuesPanel({
 function ClipPlayer({ clip, index, coachingText }) {
   const videoRef = useRef(null)
   const ttsRef = useRef({ objectUrl: null, audio: null })
+  /** Cancels in-flight /api/replay/tts fetch when starting a new utterance or stopping. */
+  const ttsFetchAbortRef = useRef(null)
+  /** Incremented on every stop or new speak — stale async work must not start another Audio. */
+  const ttsSessionRef = useRef(0)
   const skipSeekForCoachStep = useRef(true)
   const [videoUrl, setVideoUrl] = useState(null)
   const [currentTimeMs, setCurrentTimeMs] = useState(0)
@@ -454,6 +458,14 @@ function ClipPlayer({ clip, index, coachingText }) {
   }, [ttsStatus.reason])
 
   const stopCoachingAudio = useCallback(() => {
+    try {
+      ttsFetchAbortRef.current?.abort()
+    } catch {
+      /* ignore */
+    }
+    ttsFetchAbortRef.current = null
+    ttsSessionRef.current += 1
+
     const { objectUrl, audio } = ttsRef.current
     if (audio) {
       try {
@@ -481,33 +493,78 @@ function ClipPlayer({ clip, index, coachingText }) {
       const trimmed = (text || '').trim()
       if (!trimmed) return
       stopCoachingAudio()
+      const mySession = ttsSessionRef.current
       setTtsError(null)
       setTtsLoading(true)
+
+      const ac = new AbortController()
+      ttsFetchAbortRef.current = ac
+
       try {
         const res = await fetch('/api/replay/tts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: trimmed }),
+          signal: ac.signal,
         })
+        if (ttsSessionRef.current !== mySession) return
+
         if (!res.ok) {
           const err = await res.json().catch(() => ({}))
+          if (ttsSessionRef.current !== mySession) return
           setTtsError(err.error || `TTS request failed (${res.status})`)
           return
         }
         const blob = await res.blob()
+        if (ttsSessionRef.current !== mySession) return
+
         const objectUrl = URL.createObjectURL(blob)
         const audio = new Audio(objectUrl)
-        const onDone = () => stopCoachingAudio()
+        const onDone = () => {
+          audio.removeEventListener('ended', onDone)
+          audio.removeEventListener('error', onDone)
+          stopCoachingAudio()
+        }
         audio.addEventListener('ended', onDone)
         audio.addEventListener('error', onDone)
         ttsRef.current = { objectUrl, audio }
+
+        if (ttsSessionRef.current !== mySession) {
+          try {
+            URL.revokeObjectURL(objectUrl)
+          } catch {
+            /* ignore */
+          }
+          ttsRef.current = { objectUrl: null, audio: null }
+          return
+        }
+
         await audio.play()
+        if (ttsSessionRef.current !== mySession) {
+          try {
+            audio.pause()
+            audio.removeAttribute('src')
+            audio.load()
+            URL.revokeObjectURL(objectUrl)
+          } catch {
+            /* ignore */
+          }
+          ttsRef.current = { objectUrl: null, audio: null }
+          return
+        }
         setCoachingSpeaking(true)
       } catch (e) {
+        if (e?.name === 'AbortError' || ac.signal.aborted) return
+        if (ttsSessionRef.current !== mySession) return
         stopCoachingAudio()
         setTtsError(e?.message || 'Audio playback failed')
       } finally {
-        setTtsLoading(false)
+        if (ttsFetchAbortRef.current === ac) {
+          ttsFetchAbortRef.current = null
+        }
+        if (ttsSessionRef.current === mySession) {
+          setTtsLoading(false)
+        }
       }
     },
     [stopCoachingAudio]
