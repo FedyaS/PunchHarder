@@ -175,12 +175,24 @@ export function useSessionRound({ liveCameraRef, testMode = false, testSessionId
         return { clip_index: i, error: s.reason?.message || 'failed' }
       })
 
-      setResults({
-        session_id: sid,
-        clips: clipResults,
-      })
+      const baseResults = { session_id: sid, clips: clipResults }
+      setResults(baseResults)
       setPhase('results')
       phaseRef.current = 'results'
+
+      // Fire score call in background — non-blocking, merges when ready
+      fetch(`/api/live/session/${sid}/score`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+        .then((res) => res.ok ? res.json() : null)
+        .then((score) => {
+          if (score) {
+            setResults((prev) => prev ? { ...prev, score } : prev)
+          }
+        })
+        .catch(() => {})
     } catch (err) {
       setError(err?.message || 'Processing failed')
       setPhase('idle')

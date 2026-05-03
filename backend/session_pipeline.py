@@ -31,6 +31,12 @@ MOCK_COACHING_FALLBACK = """## General form notes
 Keep your guard up between combinations. Focus on returning your hands to your chin after each punch. Stay light on your feet and maintain your stance throughout.
 """
 
+MOCK_SCORE_FALLBACK = {
+    "score": 62,
+    "level": "intermediate",
+    "summary": "Solid punch volume with decent variety. Guard drops between combos and hip rotation needs work. Keep drilling fundamentals.",
+}
+
 
 def is_mock_mode(request_mock: bool | None = None) -> bool:
     """Per-request flag takes priority, env var is the fallback."""
@@ -233,3 +239,27 @@ def process_session_clip(
         "timings": timings,
         "mock_mode": mock,
     }
+
+
+def score_round(
+    all_classified_labels: list[dict],
+    all_coaching_markdown: list[str],
+    *,
+    mock: bool | None = None,
+) -> dict:
+    """Score the full round. Text-only Nemotron call — no video."""
+    mock = is_mock_mode(mock)
+
+    if mock:
+        log.info("score_round: MOCK MODE — returning cached score")
+        return MOCK_SCORE_FALLBACK
+
+    try:
+        from nemotron.score_round import fetch_round_score
+        client = _get_nemotron_client()
+        result, elapsed = fetch_round_score(client, all_classified_labels, all_coaching_markdown)
+        log.info("score_round: scored in %.1fs — %d (%s)", elapsed, result["score"], result["level"])
+        return result
+    except Exception:
+        log.warning("score_round failed, returning fallback", exc_info=True)
+        return MOCK_SCORE_FALLBACK

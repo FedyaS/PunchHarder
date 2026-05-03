@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 from punch_classifier import classify_punch_windows
-from session_pipeline import process_session_clip
+from session_pipeline import process_session_clip, score_round
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -410,7 +410,52 @@ def session_resend(session_id):
             traceback.print_exc()
             results.append({"clip_index": clip_index, "error": str(exc)})
 
-    return jsonify({"session_id": session_id, "clips": results})
+    # Score the round
+    all_labels = [r["classified_labels"] for r in results if r.get("classified_labels")]
+    all_coaching = [r.get("coaching_raw_markdown", "") for r in results if r.get("coaching_raw_markdown")]
+    try:
+        round_score = score_round(all_labels, all_coaching, mock=mock_flag or None)
+    except Exception:
+        traceback.print_exc()
+        round_score = None
+
+    return jsonify({"session_id": session_id, "clips": results, "score": round_score})
+
+
+@app.route("/api/live/session/<session_id>/score", methods=["POST"])
+def session_score(session_id):
+    """Score a completed round from saved data on disk."""
+    session_id = secure_filename(session_id)
+    session_dir = os.path.join(LIVE_SESSIONS, session_id)
+    if not os.path.isdir(session_dir):
+        return jsonify({"error": f"session {session_id} not found"}), 404
+
+    labels_dir = os.path.join(session_dir, "labels")
+    body = request.get_json(silent=True) or {}
+    mock_flag = str(body.get("mock", "")).strip().lower() in ("1", "true", "yes")
+
+    all_labels = []
+    all_coaching = []
+
+    if os.path.isdir(labels_dir):
+        for name in sorted(os.listdir(labels_dir)):
+            if not name.endswith("_labels.json"):
+                continue
+            with open(os.path.join(labels_dir, name), "r", encoding="utf-8") as f:
+                all_labels.append(json.load(f))
+
+    for name in sorted(os.listdir(session_dir)):
+        if name.endswith("_coaching.md"):
+            with open(os.path.join(session_dir, name), "r", encoding="utf-8") as f:
+                all_coaching.append(f.read())
+
+    try:
+        result = score_round(all_labels, all_coaching, mock=mock_flag or None)
+    except Exception as exc:
+        traceback.print_exc()
+        return jsonify({"error": str(exc)}), 500
+
+    return jsonify(result)
 
 
 @app.route("/api/live/sessions")
