@@ -10,6 +10,7 @@ CORS(app)
 
 NEMOTRON_OUTPUTS = os.path.join(os.path.dirname(__file__), "nemotron", "outputs")
 MOCK_INPUTS = os.path.join(os.path.dirname(__file__), "nemotron", "mock_inputs")
+EVAL_OUTPUT = os.path.join(os.path.dirname(__file__), "eval_output")
 
 
 @app.route("/api/ping")
@@ -156,6 +157,25 @@ def replay_video(clip_index):
     resp.headers["Accept-Ranges"] = "bytes"
     resp.headers["Content-Length"] = str(file_size)
     return resp
+
+
+@app.route("/api/eval/results")
+def eval_results():
+    path = os.path.join(EVAL_OUTPUT, "results.json")
+    if not os.path.exists(path):
+        return jsonify({"error": "no eval results — run `python run_model.py` first"}), 404
+    with open(path, "r", encoding="utf-8") as f:
+        return jsonify(json.load(f))
+
+
+@app.route("/api/eval/frame/<path:filename>")
+def eval_frame(filename):
+    from flask import send_from_directory
+    frames_dir = os.path.join(EVAL_OUTPUT, "frames")
+    frame_path = os.path.join(frames_dir, filename)
+    if not os.path.exists(frame_path):
+        return jsonify({"error": "frame not found"}), 404
+    return send_from_directory(frames_dir, filename, mimetype="image/jpeg")
 
 
 if __name__ == "__main__":
