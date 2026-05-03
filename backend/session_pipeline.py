@@ -32,7 +32,10 @@ Keep your guard up between combinations. Focus on returning your hands to your c
 """
 
 
-def is_mock_mode() -> bool:
+def is_mock_mode(request_mock: bool | None = None) -> bool:
+    """Per-request flag takes priority, env var is the fallback."""
+    if request_mock is not None:
+        return request_mock
     return os.environ.get("MOCK_API", "").strip() in ("1", "true", "yes")
 
 
@@ -111,6 +114,8 @@ def process_session_clip(
     clip_index: int,
     webm_path: str | Path,
     labels: dict[str, Any],
+    *,
+    mock: bool | None = None,
 ) -> dict[str, Any]:
     session_dir = Path(session_dir)
     webm_path = Path(webm_path)
@@ -121,7 +126,7 @@ def process_session_clip(
     os.makedirs(labels_dir, exist_ok=True)
     os.makedirs(tts_dir, exist_ok=True)
 
-    mock = is_mock_mode()
+    mock = is_mock_mode(mock)
     timings: dict[str, float] = {}
 
     # 1. ffmpeg conversion

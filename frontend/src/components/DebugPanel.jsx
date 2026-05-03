@@ -43,7 +43,7 @@ function JsonBlock({ label, data }) {
   )
 }
 
-function ResendPanel() {
+function ResendPanel({ onResendResults }) {
   const [sessions, setSessions] = useState([])
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
@@ -58,15 +58,22 @@ function ResendPanel() {
     setLoading(true)
     setResult(null)
     try {
-      const res = await fetch(`/api/live/session-resend/${sid}`, { method: 'POST' })
+      const res = await fetch(`/api/live/session-resend/${sid}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mock: true }),
+      })
       const data = await res.json()
       setResult(data)
+      if (res.ok && onResendResults) {
+        onResendResults(data)
+      }
     } catch (e) {
       setResult({ error: e.message })
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [onResendResults])
 
   return (
     <div className="flex flex-col gap-2 border-t border-white/10 pt-2">
@@ -93,7 +100,65 @@ function ResendPanel() {
   )
 }
 
-export function DebugPanel({ phase, sessionId, clipIndex, metrics, sessionResults, sessionError }) {
+function TestModePanel({ testMode, onTestModeChange, selectedSession, onSelectedSessionChange }) {
+  const [sessions, setSessions] = useState([])
+
+  const fetchSessions = useCallback(() => {
+    fetch('/api/live/sessions').then((r) => r.json()).then(setSessions).catch(() => {})
+  }, [])
+
+  useEffect(() => { fetchSessions() }, [fetchSessions])
+
+  useEffect(() => {
+    if (testMode && sessions.length > 0 && !selectedSession) {
+      onSelectedSessionChange(sessions[0].session_id)
+    }
+  }, [testMode, sessions, selectedSession, onSelectedSessionChange])
+
+  return (
+    <div className="flex flex-col gap-2 border-t border-white/10 pt-2">
+      <div className="flex items-center justify-between">
+        <span className="font-mono text-[11px] font-bold text-orange-400">Test Mode</span>
+        <button
+          type="button"
+          className={`rounded px-2 py-0.5 font-mono text-[10px] font-bold transition-colors ${testMode ? 'bg-orange-500 text-black' : 'bg-white/10 text-white/50'}`}
+          onClick={() => onTestModeChange(!testMode)}
+        >
+          {testMode ? 'ON' : 'OFF'}
+        </button>
+      </div>
+      {testMode && (
+        <>
+          <span className="font-mono text-[10px] text-white/40">
+            Click "Start 15s Round" — replays selected session with mock APIs
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[10px] text-white/50">Session:</span>
+            <select
+              className="flex-1 rounded bg-white/10 px-2 py-1 font-mono text-[10px] text-white/80 border-0 outline-none"
+              value={selectedSession || ''}
+              onChange={(e) => onSelectedSessionChange(e.target.value || null)}
+            >
+              <option value="">— pick —</option>
+              {sessions.map((s) => (
+                <option key={s.session_id} value={s.session_id}>
+                  {s.session_id} ({s.clip_count} clips)
+                </option>
+              ))}
+            </select>
+            <button type="button" onClick={fetchSessions} className="font-mono text-[10px] text-blue-400 hover:text-blue-300">↻</button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+export function DebugPanel({
+  phase, sessionId, clipIndex, metrics, sessionResults, sessionError,
+  testMode, onTestModeChange, selectedTestSession, onSelectedTestSessionChange,
+  onResendResults,
+}) {
   const enabled = useDebugEnabled()
   const [collapsed, setCollapsed] = useState(false)
 
@@ -107,12 +172,22 @@ export function DebugPanel({ phase, sessionId, clipIndex, metrics, sessionResult
         className="sticky top-0 z-10 flex cursor-pointer items-center justify-between bg-gray-900/95 px-3 py-2 backdrop-blur"
         onClick={() => setCollapsed((v) => !v)}
       >
-        <span className="font-mono text-xs font-bold text-green-400">DEBUG PANEL</span>
+        <span className="font-mono text-xs font-bold text-green-400">
+          DEBUG PANEL
+          {testMode && <span className="ml-2 text-orange-400">[TEST MODE]</span>}
+        </span>
         <span className="font-mono text-[10px] text-white/40">{collapsed ? '▲ expand' : '▼ collapse'} · Ctrl+D to toggle</span>
       </div>
 
       {!collapsed && (
         <div className="flex flex-col gap-2 p-3">
+          <TestModePanel
+            testMode={testMode}
+            onTestModeChange={onTestModeChange}
+            selectedSession={selectedTestSession}
+            onSelectedSessionChange={onSelectedTestSessionChange}
+          />
+
           <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-mono text-[11px]">
             <span className="text-white/50">Phase</span>
             <span className="text-yellow-300">{phase}</span>
@@ -163,7 +238,7 @@ export function DebugPanel({ phase, sessionId, clipIndex, metrics, sessionResult
           <JsonBlock label="Full metrics" data={metrics} />
           <JsonBlock label="Full sessionResults" data={sessionResults} />
 
-          <ResendPanel />
+          <ResendPanel onResendResults={onResendResults} />
         </div>
       )}
     </div>

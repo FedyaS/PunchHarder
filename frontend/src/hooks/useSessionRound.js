@@ -4,6 +4,9 @@ const CLIP_DURATION_MS = 5000
 const NUM_CLIPS = 3
 const COUNTDOWN_SECONDS = 3
 
+const TEST_COUNTDOWN_SECONDS = 1
+const TEST_FAKE_RECORDING_MS = 2000
+
 function generateSessionId() {
   const now = new Date()
   const pad = (n, len = 2) => String(n).padStart(len, '0')
@@ -57,8 +60,10 @@ function postClip(sessionId, clipIndex, videoBlob, punches, clipStartMs, clipEnd
  *
  * @param {Object} opts
  * @param {React.RefObject} opts.liveCameraRef – ref to LiveCamera imperative handle
+ * @param {boolean} [opts.testMode] – skip camera, replay a saved session
+ * @param {string|null} [opts.testSessionId] – session to replay in test mode
  */
-export function useSessionRound({ liveCameraRef }) {
+export function useSessionRound({ liveCameraRef, testMode = false, testSessionId = null }) {
   const [phase, setPhase] = useState('idle')
   const [countdown, setCountdown] = useState(0)
   const [timeLeft, setTimeLeft] = useState(0)
@@ -184,7 +189,82 @@ export function useSessionRound({ liveCameraRef }) {
   }, [cleanup])
   finishRecordingRef.current = finishRecording
 
+  const startTestRound = useCallback(async () => {
+    setError(null)
+    setResults(null)
+
+    if (!testSessionId) {
+      setError('No test session selected — pick one in the debug panel')
+      return
+    }
+
+    const sid = testSessionId
+    sessionIdRef.current = sid
+    setSessionId(sid)
+
+    // Quick countdown
+    setPhase('countdown')
+    phaseRef.current = 'countdown'
+    setCountdown(TEST_COUNTDOWN_SECONDS)
+
+    let remaining = TEST_COUNTDOWN_SECONDS
+    countdownRef.current = setInterval(() => {
+      remaining -= 1
+      setCountdown(remaining)
+      if (remaining <= 0) {
+        clearInterval(countdownRef.current)
+        countdownRef.current = null
+
+        // Fake recording phase
+        setPhase('recording')
+        phaseRef.current = 'recording'
+        setClipIndex(0)
+        const totalMs = TEST_FAKE_RECORDING_MS
+        roundStartRef.current = Date.now()
+        setTimeLeft(totalMs)
+
+        timerRef.current = setInterval(() => {
+          const elapsed = Date.now() - roundStartRef.current
+          const left = Math.max(0, totalMs - elapsed)
+          setTimeLeft(left)
+          if (left <= 0) {
+            clearInterval(timerRef.current)
+            timerRef.current = null
+          }
+        }, 100)
+
+        // After the fake recording animation, fire the resend
+        setTimeout(async () => {
+          cleanup()
+          setPhase('processing')
+          phaseRef.current = 'processing'
+
+          try {
+            const res = await fetch(`/api/live/session-resend/${sid}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ mock: true }),
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || 'resend failed')
+            setResults(data)
+            setPhase('results')
+            phaseRef.current = 'results'
+          } catch (err) {
+            setError(err?.message || 'Test round failed')
+            setPhase('idle')
+            phaseRef.current = 'idle'
+          }
+        }, totalMs)
+      }
+    }, 1000)
+  }, [testSessionId, cleanup])
+
   const startRound = useCallback(async () => {
+    if (testMode) {
+      return startTestRound()
+    }
+
     setError(null)
     setResults(null)
     clipPromisesRef.current = new Array(NUM_CLIPS).fill(null)
@@ -234,7 +314,7 @@ export function useSessionRound({ liveCameraRef }) {
         beginRecording(stream, sid)
       }
     }, 1000)
-  }, [liveCameraRef]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [liveCameraRef, testMode, startTestRound]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const beginRecording = useCallback((stream, sid) => {
     setPhase('recording')
@@ -276,6 +356,14 @@ export function useSessionRound({ liveCameraRef }) {
 
   useEffect(() => cleanup, [cleanup])
 
+  const showResults = useCallback((data) => {
+    cleanup()
+    setSessionId(data.session_id || null)
+    setResults(data)
+    setPhase('results')
+    phaseRef.current = 'results'
+  }, [cleanup])
+
   return {
     phase,
     countdown,
@@ -286,5 +374,6 @@ export function useSessionRound({ liveCameraRef }) {
     error,
     startRound,
     resetSession,
+    showResults,
   }
 }

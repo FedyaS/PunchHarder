@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { DebugPanel } from '../components/DebugPanel.jsx'
 import { LiveCamera } from '../components/LiveCamera.jsx'
@@ -12,6 +12,15 @@ export default function LiveAnalysisPage({ embedded = false }) {
   const [classifiedPunches, setClassifiedPunches] = useState([])
   const [metrics, setMetrics] = useState(null)
 
+  const [testMode, setTestMode] = useState(() => {
+    try { return localStorage.getItem('punchharder_testmode') === '1' } catch { return false }
+  })
+  const [selectedTestSession, setSelectedTestSession] = useState(null)
+
+  useEffect(() => {
+    try { localStorage.setItem('punchharder_testmode', testMode ? '1' : '0') } catch { /* noop */ }
+  }, [testMode])
+
   const {
     phase,
     countdown,
@@ -22,7 +31,12 @@ export default function LiveAnalysisPage({ embedded = false }) {
     error: sessionError,
     startRound,
     resetSession,
-  } = useSessionRound({ liveCameraRef })
+    showResults,
+  } = useSessionRound({ liveCameraRef, testMode, testSessionId: selectedTestSession })
+
+  const handleResendResults = useCallback((data) => {
+    showResults(data)
+  }, [showResults])
 
   const handleMetrics = useCallback((next) => {
     setMetrics(next)
@@ -235,14 +249,14 @@ export default function LiveAnalysisPage({ embedded = false }) {
                   </div>
                 </div>
 
-                {metrics?.isLive && (
+                {(metrics?.isLive || testMode) && (
                   <button
                     type="button"
-                    className="pointer-events-auto mt-4 w-full bg-error text-on-error py-4 rounded-lg font-label-bold text-sm uppercase tracking-[0.3em] shadow-2xl transition-all hover:opacity-90 active:scale-[0.98]"
+                    className={`pointer-events-auto mt-4 w-full py-4 rounded-lg font-label-bold text-sm uppercase tracking-[0.3em] shadow-2xl transition-all hover:opacity-90 active:scale-[0.98] ${testMode ? 'bg-orange-500 text-black' : 'bg-error text-on-error'}`}
                     onClick={startRound}
                   >
                     <span className="material-symbols-outlined align-middle mr-2 text-lg">sports_mma</span>
-                    Start 15s Round
+                    {testMode ? 'Test Round (Mock)' : 'Start 15s Round'}
                   </button>
                 )}
               </div>
@@ -303,6 +317,11 @@ export default function LiveAnalysisPage({ embedded = false }) {
         metrics={metrics}
         sessionResults={sessionResults}
         sessionError={sessionError}
+        testMode={testMode}
+        onTestModeChange={setTestMode}
+        selectedTestSession={selectedTestSession}
+        onSelectedTestSessionChange={setSelectedTestSession}
+        onResendResults={handleResendResults}
       />
     </div>
   )

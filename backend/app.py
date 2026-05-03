@@ -1,3 +1,4 @@
+import logging
 import os
 import json
 import glob
@@ -12,6 +13,11 @@ from pathlib import Path
 
 from punch_classifier import classify_punch_windows
 from session_pipeline import process_session_clip
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(name)s %(levelname)s %(message)s",
+)
 
 _backend_dir = Path(__file__).resolve().parent
 _repo_root = _backend_dir.parent
@@ -341,8 +347,10 @@ def session_clip():
     with open(os.path.join(raw_labels_dir, f"clip_{clip_index}_labels.json"), "w", encoding="utf-8") as f:
         json.dump(labels, f, indent=2)
 
+    mock_flag = request.form.get("mock", "").strip().lower() in ("1", "true", "yes")
+
     try:
-        result = process_session_clip(session_dir, clip_index, webm_path, labels)
+        result = process_session_clip(session_dir, clip_index, webm_path, labels, mock=mock_flag or None)
     except Exception as exc:
         traceback.print_exc()
         return jsonify({"error": str(exc)}), 500
@@ -370,6 +378,9 @@ def session_resend(session_id):
     clips_dir = os.path.join(session_dir, "clips")
     raw_labels_dir = os.path.join(session_dir, "raw_labels")
 
+    body = request.get_json(silent=True) or {}
+    mock_flag = str(body.get("mock", "")).strip().lower() in ("1", "true", "yes")
+
     results = []
     for clip_file in sorted(os.listdir(clips_dir)):
         if not clip_file.endswith(".webm"):
@@ -385,7 +396,7 @@ def session_resend(session_id):
             labels = {"session_id": session_id, "clip_index": clip_index, "punches": []}
 
         try:
-            result = process_session_clip(session_dir, clip_index, webm_path, labels)
+            result = process_session_clip(session_dir, clip_index, webm_path, labels, mock=mock_flag or None)
             results.append({
                 "status": "ok",
                 "clip_index": clip_index,
