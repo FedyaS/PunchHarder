@@ -14,12 +14,14 @@ export function useWebcam() {
   const streamRef = useRef(null)
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState('')
+  const [stream, setStream] = useState(null)
 
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop())
       streamRef.current = null
     }
+    setStream(null)
 
     if (videoRef.current) {
       videoRef.current.srcObject = null
@@ -41,6 +43,7 @@ export function useWebcam() {
 
       const stream = await navigator.mediaDevices.getUserMedia(cameraConstraints)
       streamRef.current = stream
+      setStream(stream)
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream
@@ -64,6 +67,7 @@ export function useWebcam() {
     startCamera,
     status,
     stopCamera,
+    stream,
     videoRef,
   }
 }

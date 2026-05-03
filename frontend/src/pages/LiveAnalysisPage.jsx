@@ -1,13 +1,33 @@
 import { useCallback, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LiveCamera } from '../components/LiveCamera.jsx'
+import { useLivePunchClassifier } from '../hooks/useLivePunchClassifier.js'
 
 export default function LiveAnalysisPage({ embedded = false }) {
   const liveCameraRef = useRef(null)
+  const { classifyClip, error: classifierError, status: classifierStatus } = useLivePunchClassifier()
+  const [classifiedPunches, setClassifiedPunches] = useState([])
   const [metrics, setMetrics] = useState(null)
   const handleMetrics = useCallback((next) => {
     setMetrics(next)
   }, [])
+  const handlePunchClipReady = useCallback(
+    async ({ filename, labels, videoBlob }) => {
+      const result = await classifyClip({ filename, labels, videoBlob })
+      const punches = result.labels?.punches ?? []
+      const loggedPunches = punches.map((punch) => ({
+        clipIndex: result.clip_index,
+        time: new Date().toLocaleTimeString([], { hour12: false }),
+        type: punch.type || 'unknown',
+        confidence: punch.yolo_confidence,
+      }))
+
+      setClassifiedPunches((current) => [...loggedPunches, ...current].slice(0, 8))
+      return result
+    },
+    [classifyClip],
+  )
+
   return (
     <div className={embedded ? 'text-on-background' : 'bg-background text-on-background font-body-md selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col pb-20 md:pb-0'}>
       {!embedded && (
@@ -95,6 +115,13 @@ export default function LiveAnalysisPage({ embedded = false }) {
                   <span className="font-label-bold text-[10px] text-on-surface-variant uppercase tracking-widest">
                     Poses in frame:{' '}
                     <span className="font-mono text-primary">{metrics.poseCount ?? 0}</span>
+                  </span>
+                </div>
+              )}
+              {classifierStatus !== 'idle' && (
+                <div className="bg-surface-container-low/80 backdrop-blur-md px-4 py-2 border-l-4 border-secondary/70 flex items-center gap-2 pointer-events-auto">
+                  <span className="font-label-bold text-[10px] text-on-surface-variant uppercase tracking-widest">
+                    Model: <span className="font-mono text-secondary">{classifierStatus}</span>
                   </span>
                 </div>
               )}
