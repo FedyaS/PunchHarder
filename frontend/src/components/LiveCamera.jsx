@@ -25,6 +25,8 @@ export const LiveCamera = forwardRef(function LiveCamera(
   const {
     error: trackingError,
     poseCount,
+    punchCount,
+    resetPunchCount,
     status: trackingStatus,
   } = usePoseLandmarker({
     canvasRef,
@@ -48,17 +50,18 @@ export const LiveCamera = forwardRef(function LiveCamera(
       error,
       isLive,
       poseCount,
+      punchCount,
       status,
       trackingError,
       trackingStatus,
     })
-  }, [error, isLive, onMetrics, poseCount, status, trackingError, trackingStatus])
+  }, [error, isLive, onMetrics, poseCount, punchCount, status, trackingError, trackingStatus])
 
   const videoStack = (
     <>
       <video
         ref={videoRef}
-        className="h-full w-full scale-x-[-1] object-cover"
+        className="absolute inset-0 h-full w-full scale-x-[-1] object-cover"
         muted
         playsInline
       />
@@ -128,7 +131,7 @@ export const LiveCamera = forwardRef(function LiveCamera(
           <h2 className="mt-2 text-3xl font-bold text-white">PunchHarder training view</h2>
           <p className="mt-2 max-w-2xl text-sm text-gray-300">
             Start the webcam and stand centered in frame. MediaPipe will log raw pose
-            landmarks to your browser console when it sees you.
+            landmarks to your browser console and estimate punches from wrist motion.
           </p>
         </div>
 
@@ -157,16 +160,34 @@ export const LiveCamera = forwardRef(function LiveCamera(
       </div>
 
       <div className="mt-4 rounded-2xl bg-gray-950/70 p-4 text-sm text-gray-300">
-        <p>
-          Status: <span className="font-mono text-green-300">{statusLabel(status)}</span>
-        </p>
-        <p className="mt-2">
-          MediaPipe:{' '}
-          <span className="font-mono text-green-300">{trackingLabel(trackingStatus)}</span>
-        </p>
-        <p className="mt-2">
-          Poses in frame: <span className="font-mono text-green-300">{poseCount}</span>
-        </p>
+        <div className="rounded-xl bg-white/5 p-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Punches</p>
+          <p className="mt-1 text-5xl font-black text-white">{punchCount}</p>
+        </div>
+
+        <div className="mt-4 flex flex-col gap-3 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p>
+              Status: <span className="font-mono text-green-300">{statusLabel(status)}</span>
+            </p>
+            <p className="mt-2">
+              MediaPipe:{' '}
+              <span className="font-mono text-green-300">{trackingLabel(trackingStatus)}</span>
+            </p>
+            <p className="mt-2">
+              Poses in frame: <span className="font-mono text-green-300">{poseCount}</span>
+            </p>
+          </div>
+
+          <button
+            className="rounded-full border border-white/20 px-4 py-2 font-semibold text-white transition hover:bg-white/10"
+            type="button"
+            onClick={resetPunchCount}
+          >
+            Reset count
+          </button>
+        </div>
+
         {error && <p className="mt-2 text-red-300">Error: {error}</p>}
         {trackingError && <p className="mt-2 text-red-300">MediaPipe error: {trackingError}</p>}
       </div>
