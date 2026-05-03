@@ -1,9 +1,24 @@
 import os
 import json
 import glob
+from pathlib import Path
 
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
+from dotenv import load_dotenv
+
+_backend_dir = Path(__file__).resolve().parent
+_repo_root = _backend_dir.parent
+load_dotenv(_repo_root / ".env")
+load_dotenv(_backend_dir / ".env")
+
+try:
+    from nemotron.magpie_tts import synthesize_speech_wav_bytes, tts_backend_ready
+except ImportError:  # pragma: no cover
+    synthesize_speech_wav_bytes = None
+
+    def tts_backend_ready():
+        return False, "magpie_tts_import_failed"
 
 app = Flask(__name__)
 CORS(app)
@@ -84,6 +99,50 @@ def replay_clips():
             with open(json_path, "r", encoding="utf-8") as f:
                 clips.append(json.load(f))
     return jsonify(clips)
+
+
+@app.route("/api/replay/tts/status")
+def replay_tts_status():
+    """Magpie TTS (Nemotron Voice Agent stack) — same cloud Riva path as build.nvidia.com docs."""
+    if synthesize_speech_wav_bytes is None:
+        return jsonify({
+            "ok": False,
+            "reason": "import_failed",
+            "provider": "Magpie TTS (Nemotron Voice Agent)",
+            "info": "https://build.nvidia.com/nvidia/nemotron-voice-agent",
+        })
+    ok, reason = tts_backend_ready()
+    return jsonify({
+        "ok": ok,
+        "reason": reason,
+        "provider": "Magpie TTS (Nemotron Voice Agent)",
+        "info": "https://build.nvidia.com/nvidia/nemotron-voice-agent",
+    })
+
+
+@app.route("/api/replay/tts", methods=["POST"])
+def replay_tts():
+    """Synthesize coaching text to WAV using Magpie TTS on NVIDIA NVCF."""
+    if synthesize_speech_wav_bytes is None:
+        return jsonify({"error": "TTS not available (install nvidia-riva-client)"}), 503
+    ok, reason = tts_backend_ready()
+    if not ok:
+        return jsonify({"error": reason}), 503
+
+    body = request.get_json(silent=True) or {}
+    text = (body.get("text") or "").strip()
+    if not text:
+        return jsonify({"error": "text required"}), 400
+    if len(text) > 12000:
+        return jsonify({"error": "text too long (max 12000 chars)"}), 400
+
+    api_key = os.environ.get("NVIDIA_API_KEY", "").strip()
+    try:
+        wav_bytes = synthesize_speech_wav_bytes(text, api_key)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+
+    return Response(wav_bytes, mimetype="audio/wav")
 
 
 @app.route("/api/replay/coaching/<int:clip_index>")

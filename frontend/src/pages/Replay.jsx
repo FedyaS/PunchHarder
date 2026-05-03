@@ -77,6 +77,14 @@ function extractRangesFromBody(body) {
   return ranges
 }
 
+/** Plain text for Magpie TTS (Nemotron Voice Agent stack). */
+function buildCoachingSpeechText(issue) {
+  if (!issue) return ''
+  const t0 = (issue.startMs / 1000).toFixed(1)
+  const t1 = (issue.endMs / 1000).toFixed(1)
+  return `${issue.category}. Roughly ${t0} to ${t1} seconds in this clip. ${issue.rationale}`.replace(/\s+/g, ' ').trim()
+}
+
 function bestRationaleForRange(body, startMs, endMs) {
   const sentences = body
     .split(/(?<=[.!?])\s+/)
@@ -261,6 +269,15 @@ function CoachingIssuesPanel({
   onSelectLoop,
   onClearLoop,
   clipDurationMs,
+  ttsReady,
+  ttsStatusReason,
+  ttsLoading,
+  coachingSpeaking,
+  onReadAloud,
+  onStopSpeech,
+  speakOnIssueNav,
+  onSpeakOnIssueNavChange,
+  ttsError,
 }) {
   if (!sortedIssues.length) {
     return (
@@ -283,10 +300,21 @@ function CoachingIssuesPanel({
     <div className="bg-gray-900/40 border border-amber-900/30 rounded-xl p-4 mt-4">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h3 className="text-white font-semibold text-sm">Coach feedback</h3>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 justify-end">
           <span className="text-gray-500 text-xs font-mono tabular-nums">
             {issueIndex + 1} / {total}
           </span>
+          {ttsReady && (
+            <label className="flex items-center gap-1.5 text-[11px] text-gray-400 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                className="rounded border-gray-600 bg-gray-900 text-amber-500 focus:ring-amber-500/40"
+                checked={speakOnIssueNav}
+                onChange={(e) => onSpeakOnIssueNavChange(e.target.checked)}
+              />
+              Speak on prev/next
+            </label>
+          )}
           {loopIssue && (
             <button
               type="button"
@@ -333,17 +361,56 @@ function CoachingIssuesPanel({
             <span className="text-gray-600 text-xs">({pct}% of clip)</span>
           </div>
           <p className="text-gray-300 text-sm leading-relaxed mb-3">{iss.rationale}</p>
-          <button
-            type="button"
-            onClick={() => onSelectLoop(iss)}
-            className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
-              looping
-                ? 'bg-amber-500 text-black border-amber-400'
-                : 'bg-gray-900 text-amber-100 border-amber-800/60 hover:bg-gray-800'
-            }`}
-          >
-            {looping ? 'Looping this segment' : 'Loop this segment'}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            {ttsReady && (
+              <>
+                <button
+                  type="button"
+                  onClick={onReadAloud}
+                  disabled={ttsLoading}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-sky-700/60 bg-sky-950/50 text-sky-100 hover:bg-sky-900/50 transition-colors disabled:opacity-50"
+                >
+                  {ttsLoading ? 'Synthesizing…' : 'Read aloud'}
+                </button>
+                <button
+                  type="button"
+                  onClick={onStopSpeech}
+                  disabled={!coachingSpeaking && !ttsLoading}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-600 bg-gray-900 text-gray-300 hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Stop speech
+                </button>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => onSelectLoop(iss)}
+              className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
+                looping
+                  ? 'bg-amber-500 text-black border-amber-400'
+                  : 'bg-gray-900 text-amber-100 border-amber-800/60 hover:bg-gray-800'
+              }`}
+            >
+              {looping ? 'Looping this segment' : 'Loop this segment'}
+            </button>
+          </div>
+          {!ttsReady && (
+            <p className="text-[11px] text-gray-600 mt-2">
+              Voice (Magpie TTS — same as{' '}
+              <a
+                href="https://build.nvidia.com/nvidia/nemotron-voice-agent"
+                className="text-sky-500/90 hover:underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Nemotron Voice Agent
+              </a>
+              ) is unavailable: {ttsStatusReason || 'check backend logs'}.
+              Ensure <span className="font-mono">NVIDIA_API_KEY</span> is set and{' '}
+              <span className="font-mono">pip install nvidia-riva-client</span> on the server.
+            </p>
+          )}
+          {ttsError && <p className="text-[11px] text-red-400/90 mt-2">{ttsError}</p>}
         </div>
       )}
     </div>
@@ -352,6 +419,7 @@ function CoachingIssuesPanel({
 
 function ClipPlayer({ clip, index, coachingText }) {
   const videoRef = useRef(null)
+  const ttsRef = useRef({ objectUrl: null, audio: null })
   const skipSeekForCoachStep = useRef(true)
   const [videoUrl, setVideoUrl] = useState(null)
   const [currentTimeMs, setCurrentTimeMs] = useState(0)
@@ -360,6 +428,11 @@ function ClipPlayer({ clip, index, coachingText }) {
   const [speed, setSpeedState] = useState(1)
   const [loopIssue, setLoopIssue] = useState(null)
   const [issueIndex, setIssueIndex] = useState(0)
+  const [ttsStatus, setTtsStatus] = useState({ loaded: false, ok: false, reason: '' })
+  const [speakOnIssueNav, setSpeakOnIssueNav] = useState(true)
+  const [coachingSpeaking, setCoachingSpeaking] = useState(false)
+  const [ttsLoading, setTtsLoading] = useState(false)
+  const [ttsError, setTtsError] = useState(null)
 
   const issues = useMemo(() => parseCoachingIssues(coachingText || ''), [coachingText])
 
@@ -370,6 +443,89 @@ function ClipPlayer({ clip, index, coachingText }) {
   const currentCoachIssue = sortedIssues[issueIndex] ?? null
 
   const clipDuration = clip.clip_end_ms - clip.clip_start_ms
+
+  const ttsUnavailableHint = useMemo(() => {
+    const r = ttsStatus.reason
+    if (r === 'no_api_key') return 'NVIDIA_API_KEY is not set on the Flask server.'
+    if (r === 'riva_client_missing') return 'Install nvidia-riva-client in the backend virtualenv.'
+    if (r === 'magpie_tts_import_failed' || r === 'import_failed') return 'Backend could not import nemotron.magpie_tts.'
+    if (r === 'status_fetch_failed') return 'Could not reach /api/replay/tts/status.'
+    return r || 'unknown'
+  }, [ttsStatus.reason])
+
+  const stopCoachingAudio = useCallback(() => {
+    const { objectUrl, audio } = ttsRef.current
+    if (audio) {
+      try {
+        audio.pause()
+        audio.removeAttribute('src')
+        audio.load()
+      } catch {
+        /* ignore */
+      }
+    }
+    if (objectUrl) {
+      try {
+        URL.revokeObjectURL(objectUrl)
+      } catch {
+        /* ignore */
+      }
+    }
+    ttsRef.current = { objectUrl: null, audio: null }
+    setCoachingSpeaking(false)
+    setTtsLoading(false)
+  }, [])
+
+  const playCoachingTts = useCallback(
+    async (text) => {
+      const trimmed = (text || '').trim()
+      if (!trimmed) return
+      stopCoachingAudio()
+      setTtsError(null)
+      setTtsLoading(true)
+      try {
+        const res = await fetch('/api/replay/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: trimmed }),
+        })
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}))
+          setTtsError(err.error || `TTS request failed (${res.status})`)
+          return
+        }
+        const blob = await res.blob()
+        const objectUrl = URL.createObjectURL(blob)
+        const audio = new Audio(objectUrl)
+        const onDone = () => stopCoachingAudio()
+        audio.addEventListener('ended', onDone)
+        audio.addEventListener('error', onDone)
+        ttsRef.current = { objectUrl, audio }
+        await audio.play()
+        setCoachingSpeaking(true)
+      } catch (e) {
+        stopCoachingAudio()
+        setTtsError(e?.message || 'Audio playback failed')
+      } finally {
+        setTtsLoading(false)
+      }
+    },
+    [stopCoachingAudio]
+  )
+
+  useEffect(() => {
+    fetch('/api/replay/tts/status')
+      .then((r) => r.json())
+      .then((d) => setTtsStatus({ loaded: true, ok: !!d.ok, reason: d.reason || '' }))
+      .catch(() => setTtsStatus({ loaded: true, ok: false, reason: 'status_fetch_failed' }))
+  }, [index])
+
+  useEffect(() => {
+    stopCoachingAudio()
+    setTtsError(null)
+  }, [index, coachingText, stopCoachingAudio])
+
+  useEffect(() => () => stopCoachingAudio(), [stopCoachingAudio])
 
   useEffect(() => {
     setIssueIndex(0)
@@ -474,18 +630,43 @@ function ClipPlayer({ clip, index, coachingText }) {
     setLoopIssue(null)
   }, [])
 
+  const handleReadCoachingAloud = useCallback(() => {
+    const issue = sortedIssues[issueIndex]
+    if (!issue) return
+    playCoachingTts(buildCoachingSpeechText(issue))
+  }, [sortedIssues, issueIndex, playCoachingTts])
+
   const goPrevIssue = useCallback(() => {
     skipSeekForCoachStep.current = false
-    setIssueIndex((i) => Math.max(0, i - 1))
-  }, [])
+    setIssueIndex((i) => {
+      if (sortedIssues.length === 0) return 0
+      const next = Math.max(0, i - 1)
+      if (next !== i && speakOnIssueNav && ttsStatus.ok) {
+        const issue = sortedIssues[next]
+        const text = buildCoachingSpeechText(issue)
+        queueMicrotask(() => {
+          playCoachingTts(text)
+        })
+      }
+      return next
+    })
+  }, [sortedIssues, speakOnIssueNav, ttsStatus.ok, playCoachingTts])
 
   const goNextIssue = useCallback(() => {
     skipSeekForCoachStep.current = false
     setIssueIndex((i) => {
       if (sortedIssues.length === 0) return 0
-      return Math.min(sortedIssues.length - 1, i + 1)
+      const next = Math.min(sortedIssues.length - 1, i + 1)
+      if (next !== i && speakOnIssueNav && ttsStatus.ok) {
+        const issue = sortedIssues[next]
+        const text = buildCoachingSpeechText(issue)
+        queueMicrotask(() => {
+          playCoachingTts(text)
+        })
+      }
+      return next
     })
-  }, [sortedIssues.length])
+  }, [sortedIssues, speakOnIssueNav, ttsStatus.ok, playCoachingTts])
 
   if (!videoUrl) {
     return (
@@ -598,6 +779,15 @@ function ClipPlayer({ clip, index, coachingText }) {
         onSelectLoop={onSelectLoop}
         onClearLoop={onClearLoop}
         clipDurationMs={clipDuration}
+        ttsReady={ttsStatus.loaded && ttsStatus.ok}
+        ttsStatusReason={ttsUnavailableHint}
+        ttsLoading={ttsLoading}
+        coachingSpeaking={coachingSpeaking}
+        onReadAloud={handleReadCoachingAloud}
+        onStopSpeech={stopCoachingAudio}
+        speakOnIssueNav={speakOnIssueNav}
+        onSpeakOnIssueNavChange={setSpeakOnIssueNav}
+        ttsError={ttsError}
       />
 
       <PunchLog punches={clip.punches} currentTimeMs={currentTimeMs} clipStartMs={clip.clip_start_ms} />
