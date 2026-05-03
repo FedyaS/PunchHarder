@@ -39,10 +39,11 @@ export const LiveCamera = forwardRef(function LiveCamera(
     () => ({
       startCamera,
       stopCamera,
+      resetPunchCount,
       isLive,
       status,
     }),
-    [startCamera, stopCamera, isLive, status],
+    [startCamera, stopCamera, resetPunchCount, isLive, status],
   )
 
   useEffect(() => {
