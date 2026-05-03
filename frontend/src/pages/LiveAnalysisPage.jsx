@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LiveCamera } from '../components/LiveCamera.jsx'
+import { useLivePunchClassifier } from '../hooks/useLivePunchClassifier.js'
 
 function sensorsLabel(metrics) {
   if (!metrics) return 'STANDBY'
@@ -12,10 +13,29 @@ function sensorsLabel(metrics) {
 
 export default function LiveAnalysisPage({ embedded = false }) {
   const liveCameraRef = useRef(null)
+  const { classifyClip, error: classifierError, status: classifierStatus } = useLivePunchClassifier()
+  const [classifiedPunches, setClassifiedPunches] = useState([])
   const [metrics, setMetrics] = useState(null)
   const handleMetrics = useCallback((next) => {
     setMetrics(next)
   }, [])
+  const handlePunchClipReady = useCallback(
+    async ({ filename, labels, videoBlob }) => {
+      const result = await classifyClip({ filename, labels, videoBlob })
+      const punches = result.labels?.punches ?? []
+      const loggedPunches = punches.map((punch) => ({
+        clipIndex: result.clip_index,
+        time: new Date().toLocaleTimeString([], { hour12: false }),
+        type: punch.type || 'unknown',
+        confidence: punch.yolo_confidence,
+      }))
+
+      setClassifiedPunches((current) => [...loggedPunches, ...current].slice(0, 8))
+      return result
+    },
+    [classifyClip],
+  )
+
   return (
     <div className={embedded ? 'text-on-background' : 'bg-background text-on-background font-body-md selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col pb-20 md:pb-0'}>
       {!embedded && (
@@ -88,7 +108,13 @@ export default function LiveAnalysisPage({ embedded = false }) {
 
         <section className={embedded ? 'relative flex min-h-[520px] flex-col overflow-hidden rounded-2xl border border-surface-container-highest bg-black' : 'flex-grow relative bg-black flex flex-col min-h-[40vh]'}>
           <div className="flex-grow relative overflow-hidden group min-h-[280px] flex flex-col">
-            <LiveCamera ref={liveCameraRef} embedded onMetrics={handleMetrics} className="min-h-[280px] flex-1" />
+            <LiveCamera
+              ref={liveCameraRef}
+              embedded
+              onMetrics={handleMetrics}
+              onPunchClipReady={handlePunchClipReady}
+              className="min-h-[280px] flex-1"
+            />
             <div className="pointer-events-none absolute top-8 left-8 z-30 flex flex-col gap-2">
               <div className="bg-surface-container-low/80 backdrop-blur-md px-4 py-2 border-l-4 border-primary flex items-center gap-2">
                 <span
@@ -108,6 +134,13 @@ export default function LiveAnalysisPage({ embedded = false }) {
                   <span className="font-label-bold text-[10px] text-on-surface-variant uppercase tracking-widest">
                     Poses in frame:{' '}
                     <span className="font-mono text-primary">{metrics.poseCount ?? 0}</span>
+                  </span>
+                </div>
+              )}
+              {classifierStatus !== 'idle' && (
+                <div className="bg-surface-container-low/80 backdrop-blur-md px-4 py-2 border-l-4 border-secondary/70 flex items-center gap-2 pointer-events-auto">
+                  <span className="font-label-bold text-[10px] text-on-surface-variant uppercase tracking-widest">
+                    Model: <span className="font-mono text-secondary">{classifierStatus}</span>
                   </span>
                 </div>
               )}
@@ -200,14 +233,27 @@ export default function LiveAnalysisPage({ embedded = false }) {
 
           <div className="flex-grow flex flex-col gap-3 min-h-0">
             <div className="font-label-bold text-[10px] text-on-surface-variant mb-2 uppercase tracking-widest">REAL-TIME LOG</div>
+            {classifierError && (
+              <div className="bg-error-container text-on-error-container p-3 text-[11px] border-l-2 border-error font-label-bold rounded-sm">
+                {classifierError}
+              </div>
+            )}
             <div className="space-y-2">
-              {[
-                { t: '08:42:12', m: 'Power Hook', v: '+120', border: 'border-surface-container-highest' },
-                { t: '08:42:15', m: 'Snap wrist', v: 'TIP', border: 'border-primary', bold: true },
-                { t: '08:42:18', m: '1-2-3-2', v: 'EXC', border: 'border-secondary', sec: true },
-              ].map((row) => (
+              {(classifiedPunches.length > 0
+                ? classifiedPunches.map((punch) => ({
+                    t: punch.time,
+                    m: `${punch.type} - clip ${punch.clipIndex}`,
+                    v: punch.confidence ? `${Math.round(punch.confidence * 100)}%` : 'TYPE',
+                    border: 'border-secondary',
+                    sec: true,
+                  }))
+                : [
+                    { t: '08:42:12', m: 'Power Hook', v: '+120', border: 'border-surface-container-highest' },
+                    { t: '08:42:15', m: 'Snap wrist', v: 'TIP', border: 'border-primary', bold: true },
+                    { t: '08:42:18', m: '1-2-3-2', v: 'EXC', border: 'border-secondary', sec: true },
+                  ]).map((row) => (
                 <div
-                  key={row.t}
+                  key={`${row.t}-${row.m}`}
                   className={`bg-surface-container-low p-3 text-[11px] flex justify-between items-center border-l-2 ${row.border} font-label-bold rounded-sm`}
                 >
                   <span className="text-on-surface-variant">{row.t}</span>

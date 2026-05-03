@@ -1,9 +1,13 @@
 import os
 import json
 import glob
+from datetime import datetime
 
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
+from werkzeug.utils import secure_filename
+
+from punch_classifier import classify_punch_windows
 
 app = Flask(__name__)
 CORS(app)
@@ -11,6 +15,7 @@ CORS(app)
 NEMOTRON_OUTPUTS = os.path.join(os.path.dirname(__file__), "nemotron", "outputs")
 MOCK_INPUTS = os.path.join(os.path.dirname(__file__), "nemotron", "mock_inputs")
 EVAL_OUTPUT = os.path.join(os.path.dirname(__file__), "eval_output")
+LIVE_SESSIONS = os.path.join(os.path.dirname(__file__), "live_sessions")
 
 
 @app.route("/api/ping")
@@ -106,6 +111,7 @@ def replay_coaching(clip_index):
 
 LABELS_DIR = os.path.join(os.path.dirname(__file__), "nemotron", "labels")
 os.makedirs(LABELS_DIR, exist_ok=True)
+os.makedirs(LIVE_SESSIONS, exist_ok=True)
 
 
 @app.route("/api/label/save", methods=["POST"])
@@ -125,6 +131,65 @@ def load_labels(clip_index):
         return jsonify({"error": "no labels"}), 404
     with open(path, "r", encoding="utf-8") as f:
         return jsonify(json.load(f))
+
+
+@app.route("/api/live/classify", methods=["POST"])
+def classify_live_clip():
+    video = request.files.get("video")
+    labels_raw = request.form.get("labels")
+
+    if video is None:
+        return jsonify({"error": "missing multipart video file"}), 400
+    if not labels_raw:
+        return jsonify({"error": "missing labels JSON form field"}), 400
+
+    try:
+        labels = json.loads(labels_raw)
+    except json.JSONDecodeError as exc:
+        return jsonify({"error": f"invalid labels JSON: {exc.msg}"}), 400
+
+    session_id = secure_filename(
+        str(labels.get("session_id") or request.form.get("session_id") or datetime.utcnow().strftime("session_%Y%m%d_%H%M%S"))
+    )
+    clip_index = int(labels.get("clip_index", request.form.get("clip_index", 0)))
+
+    session_dir = os.path.join(LIVE_SESSIONS, session_id)
+    clips_dir = os.path.join(session_dir, "clips")
+    labels_dir = os.path.join(session_dir, "labels")
+    raw_labels_dir = os.path.join(session_dir, "raw_labels")
+    os.makedirs(clips_dir, exist_ok=True)
+    os.makedirs(labels_dir, exist_ok=True)
+    os.makedirs(raw_labels_dir, exist_ok=True)
+
+    original_filename = secure_filename(video.filename or "")
+    _, ext = os.path.splitext(original_filename)
+    if not ext:
+        ext = ".webm"
+
+    video_path = os.path.join(clips_dir, f"clip_{clip_index}{ext}")
+    raw_labels_path = os.path.join(raw_labels_dir, f"clip_{clip_index}_labels.json")
+    labels_path = os.path.join(labels_dir, f"clip_{clip_index}_labels.json")
+
+    video.save(video_path)
+    with open(raw_labels_path, "w", encoding="utf-8") as f:
+        json.dump(labels, f, indent=2)
+
+    try:
+        classified_labels = classify_punch_windows(video_path, labels)
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+    with open(labels_path, "w", encoding="utf-8") as f:
+        json.dump(classified_labels, f, indent=2)
+
+    return jsonify({
+        "status": "ok",
+        "session_id": session_id,
+        "clip_index": clip_index,
+        "video_path": video_path,
+        "labels_path": labels_path,
+        "labels": classified_labels,
+    })
 
 
 @app.route("/api/replay/video/<int:clip_index>")
