@@ -707,17 +707,16 @@ function ClipPlayer({ clip, index, coachingText }) {
     videoRef.current.currentTime = (pct * clipDuration) / 1000
   }
 
-  const onSelectLoop = useCallback(
-    (iss) => {
-      setLoopIssue(iss)
-      if (videoRef.current) {
-        videoRef.current.currentTime = iss.startMs / 1000
-        videoRef.current.play().catch(() => {})
-        setPlaying(true)
-      }
-    },
-    []
-  )
+  const onSelectLoop = useCallback((iss) => {
+    setLoopIssue(iss)
+    setSpeedState(0.5)
+    if (videoRef.current) {
+      videoRef.current.playbackRate = 0.5
+      videoRef.current.currentTime = iss.startMs / 1000
+      videoRef.current.play().catch(() => {})
+      setPlaying(true)
+    }
+  }, [])
 
   const onClearLoop = useCallback(() => {
     setLoopIssue(null)
