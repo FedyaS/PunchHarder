@@ -22,8 +22,8 @@ export function LiveCamera() {
   const {
     error: trackingError,
     poseCount,
-    punchStats,
-    resetPunchStats,
+    punchCount,
+    resetPunchCount,
     status: trackingStatus,
   } = usePoseLandmarker({
     canvasRef,
@@ -90,27 +90,9 @@ export function LiveCamera() {
       </div>
 
       <div className="mt-4 rounded-2xl bg-gray-950/70 p-4 text-sm text-gray-300">
-        <div className="grid gap-3 sm:grid-cols-4">
-          <div className="rounded-xl bg-white/5 p-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Total</p>
-            <p className="mt-1 text-3xl font-black text-white">{punchStats.total}</p>
-          </div>
-          <div className="rounded-xl bg-white/5 p-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Left</p>
-            <p className="mt-1 text-3xl font-black text-white">{punchStats.left}</p>
-          </div>
-          <div className="rounded-xl bg-white/5 p-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Right</p>
-            <p className="mt-1 text-3xl font-black text-white">{punchStats.right}</p>
-          </div>
-          <div className="rounded-xl bg-white/5 p-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Last punch</p>
-            <p className="mt-1 text-sm font-semibold text-white">
-              {punchStats.lastPunch
-                ? `${punchStats.lastPunch.hand} at ${punchStats.lastPunch.time}`
-                : 'None yet'}
-            </p>
-          </div>
+        <div className="rounded-xl bg-white/5 p-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Punches</p>
+          <p className="mt-1 text-5xl font-black text-white">{punchCount}</p>
         </div>
 
         <div className="mt-4 flex flex-col gap-3 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
@@ -130,9 +112,9 @@ export function LiveCamera() {
           <button
             className="rounded-full border border-white/20 px-4 py-2 font-semibold text-white transition hover:bg-white/10"
             type="button"
-            onClick={resetPunchStats}
+            onClick={resetPunchCount}
           >
-            Reset stats
+            Reset count
           </button>
         </div>
 

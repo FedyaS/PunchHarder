@@ -5,15 +5,21 @@ const MEDIAPIPE_VERSION = '0.10.35'
 const WASM_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`
 const MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task'
-const HISTORY_SAMPLE_LIMIT = 12
-const PUNCH_COOLDOWN_MS = 550
 const MIN_VISIBILITY = 0.45
-const GUARD_EXTENSION_MAX = 1.3
-const BENT_ELBOW_REARM_ANGLE = 135
-const STRAIGHT_ELBOW_MIN = 145
-const EXTENDED_EXTENSION_MIN = 1.25
-const MIN_EXTENSION_GAIN = 0.18
-const EXTENSION_VELOCITY_THRESHOLD = 1.2
+const COCKED_EXTENSION_MAX = 0.6
+const COCKED_ELBOW_MAX = 120
+const EXTENDING_WRIST_VELOCITY_MIN = 1.2
+const EXTENDED_ELBOW_MIN = 160
+const EXTENDED_EXTENSION_MIN = 0.85
+const RETRACTED_EXTENSION_MAX = 0.7
+const REFRACTORY_PERIOD_MS = 200
+
+const PUNCH_PHASE = {
+  idle: 'IDLE',
+  cocked: 'COCKED',
+  extending: 'EXTENDING',
+  extended: 'EXTENDED',
+}
 
 const LANDMARKS = {
   leftShoulder: 11,
@@ -39,17 +45,18 @@ const PUNCH_SIDES = {
   },
 }
 
-const initialPunchStats = {
-  total: 0,
-  left: 0,
-  right: 0,
-  lastPunch: null,
+function createInitialArmPunchState() {
+  return {
+    lastCountTime: Number.NEGATIVE_INFINITY,
+    lastSample: null,
+    phase: PUNCH_PHASE.idle,
+  }
 }
 
 function createInitialPunchState() {
   return {
-    left: { armed: false },
-    right: { armed: false },
+    left: createInitialArmPunchState(),
+    right: createInitialArmPunchState(),
   }
 }
 
@@ -104,33 +111,34 @@ function createPunchSample(poseLandmarks, side, now) {
     elbowAngle: angleDegrees(shoulder, elbow, wrist),
     extension: distance2d(wrist, shoulder) / scale,
     time: now,
-    wrist: {
-      x: wrist.x,
-      y: wrist.y,
-      z: wrist.z ?? 0,
-    },
   }
+}
+
+function wristVelocityRelative(previousSample, sample) {
+  if (!previousSample) return 0
+
+  const elapsedSeconds = (sample.time - previousSample.time) / 1000
+
+  if (elapsedSeconds <= 0) return 0
+
+  return (sample.extension - previousSample.extension) / elapsedSeconds
 }
 
 export function usePoseLandmarker({ canvasRef, enabled, videoRef }) {
   const animationFrameRef = useRef(null)
   const drawingUtilsRef = useRef(null)
-  const landmarkHistoryRef = useRef({ left: [], right: [] })
   const landmarkerRef = useRef(null)
   const lastLogTimeRef = useRef(0)
-  const lastPunchTimeRef = useRef({ left: 0, right: 0 })
   const lastVideoTimeRef = useRef(-1)
   const punchStateRef = useRef(createInitialPunchState())
   const [error, setError] = useState('')
   const [poseCount, setPoseCount] = useState(0)
-  const [punchStats, setPunchStats] = useState(initialPunchStats)
+  const [punchCount, setPunchCount] = useState(0)
   const [status, setStatus] = useState('idle')
 
-  const resetPunchStats = useCallback(() => {
-    landmarkHistoryRef.current = { left: [], right: [] }
-    lastPunchTimeRef.current = { left: 0, right: 0 }
+  const resetPunchCount = useCallback(() => {
     punchStateRef.current = createInitialPunchState()
-    setPunchStats(initialPunchStats)
+    setPunchCount(0)
   }, [])
 
   useEffect(() => {
@@ -198,28 +206,16 @@ export function usePoseLandmarker({ canvasRef, enabled, videoRef }) {
     }
 
     function clearPunchHistory() {
-      landmarkHistoryRef.current = { left: [], right: [] }
       punchStateRef.current = createInitialPunchState()
     }
 
-    function recordPunch(side, now, velocity, sample) {
-      lastPunchTimeRef.current[side] = now
-
-      setPunchStats((currentStats) => ({
-        ...currentStats,
-        total: currentStats.total + 1,
-        [side]: currentStats[side] + 1,
-        lastPunch: {
-          hand: PUNCH_SIDES[side].label,
-          time: new Date().toLocaleTimeString(),
-          velocity: Number(velocity.toFixed(2)),
-        },
-      }))
+    function recordPunch(side, wristVelocity, sample) {
+      setPunchCount((currentCount) => currentCount + 1)
 
       console.log(`${PUNCH_SIDES[side].label} punch detected`, {
         elbowAngle: Number(sample.elbowAngle.toFixed(1)),
         extension: Number(sample.extension.toFixed(2)),
-        velocity: Number(velocity.toFixed(2)),
+        wristVelocity: Number(wristVelocity.toFixed(2)),
       })
     }
 
@@ -231,54 +227,56 @@ export function usePoseLandmarker({ canvasRef, enabled, videoRef }) {
 
       Object.keys(PUNCH_SIDES).forEach((side) => {
         const sample = createPunchSample(poseLandmarks, side, now)
+        const sideState = punchStateRef.current[side]
 
         if (!sample) {
-          landmarkHistoryRef.current[side] = []
+          punchStateRef.current[side] = createInitialArmPunchState()
           return
         }
 
-        const history = landmarkHistoryRef.current[side]
+        const wristVelocity = wristVelocityRelative(sideState.lastSample, sample)
+        const isCocked =
+          sample.extension < COCKED_EXTENSION_MAX && sample.elbowAngle < COCKED_ELBOW_MAX
+        const isExtending = wristVelocity > EXTENDING_WRIST_VELOCITY_MIN
+        const isExtended =
+          sample.elbowAngle > EXTENDED_ELBOW_MIN && sample.extension > EXTENDED_EXTENSION_MIN
+        const canReturnIdle =
+          sample.extension < RETRACTED_EXTENSION_MAX &&
+          now - sideState.lastCountTime >= REFRACTORY_PERIOD_MS
 
-        history.push(sample)
+        sideState.lastSample = sample
 
-        if (history.length > HISTORY_SAMPLE_LIMIT) {
-          history.shift()
+        if (sideState.phase === PUNCH_PHASE.idle) {
+          if (isCocked) {
+            sideState.phase = PUNCH_PHASE.cocked
+          }
+          return
         }
 
-        const sideState = punchStateRef.current[side]
-
-        if (
-          sample.extension <= GUARD_EXTENSION_MAX ||
-          sample.elbowAngle <= BENT_ELBOW_REARM_ANGLE
-        ) {
-          sideState.armed = true
+        if (sideState.phase === PUNCH_PHASE.cocked) {
+          if (isExtending) {
+            sideState.phase = PUNCH_PHASE.extending
+          } else if (!isCocked) {
+            sideState.phase = PUNCH_PHASE.idle
+          }
+          return
         }
 
-        if (history.length < 4) return
+        if (sideState.phase === PUNCH_PHASE.extending) {
+          if (isExtended) {
+            sideState.phase = PUNCH_PHASE.extended
+            sideState.lastCountTime = now
+            recordPunch(side, wristVelocity, sample)
+          } else if (isCocked) {
+            sideState.phase = PUNCH_PHASE.cocked
+          } else if (canReturnIdle) {
+            sideState.phase = PUNCH_PHASE.idle
+          }
+          return
+        }
 
-        const recentHistory = history.slice(-8)
-        const windowStart = recentHistory[0]
-        const elapsedSeconds = (sample.time - windowStart.time) / 1000
-
-        if (elapsedSeconds < 0.08) return
-
-        const minExtension = Math.min(
-          ...recentHistory.map((historySample) => historySample.extension),
-        )
-        const extensionGain = sample.extension - minExtension
-        const extensionVelocity = (sample.extension - windowStart.extension) / elapsedSeconds
-        const isArmStraight = sample.elbowAngle >= STRAIGHT_ELBOW_MIN
-        const isExtendedEnough = sample.extension >= EXTENDED_EXTENSION_MIN
-        const isClearExtension =
-          isArmStraight &&
-          isExtendedEnough &&
-          (extensionGain >= MIN_EXTENSION_GAIN ||
-            extensionVelocity >= EXTENSION_VELOCITY_THRESHOLD)
-        const isOnCooldown = now - lastPunchTimeRef.current[side] < PUNCH_COOLDOWN_MS
-
-        if (sideState.armed && !isOnCooldown && isClearExtension) {
-          sideState.armed = false
-          recordPunch(side, now, extensionVelocity, sample)
+        if (sideState.phase === PUNCH_PHASE.extended && canReturnIdle) {
+          sideState.phase = PUNCH_PHASE.idle
         }
       })
     }
@@ -366,8 +364,8 @@ export function usePoseLandmarker({ canvasRef, enabled, videoRef }) {
   return {
     error,
     poseCount,
-    punchStats,
-    resetPunchStats,
+    punchCount,
+    resetPunchCount,
     status,
   }
 }
