@@ -72,13 +72,13 @@
   --spacing-stack-lg: 64px;
   --spacing-base: 8px;
 
-  --font-body-lg: Lexend, ui-sans-serif, system-ui, sans-serif;
-  --font-label-bold: Lexend, ui-sans-serif, system-ui, sans-serif;
-  --font-label-sm: Lexend, ui-sans-serif, system-ui, sans-serif;
-  --font-headline-md: Epilogue, ui-sans-serif, system-ui, sans-serif;
-  --font-headline-display: Epilogue, ui-sans-serif, system-ui, sans-serif;
-  --font-headline-lg: Epilogue, ui-sans-serif, system-ui, sans-serif;
-  --font-body-md: Lexend, ui-sans-serif, system-ui, sans-serif;
+  --font-body-lg: "Courier New", "Lucida Console", Monaco, ui-monospace, monospace;
+  --font-label-bold: "Courier New", "Lucida Console", Monaco, ui-monospace, monospace;
+  --font-label-sm: "Courier New", "Lucida Console", Monaco, ui-monospace, monospace;
+  --font-headline-md: "Courier New", "Lucida Console", Monaco, ui-monospace, monospace;
+  --font-headline-display: "Courier New", "Lucida Console", Monaco, ui-monospace, monospace;
+  --font-headline-lg: "Courier New", "Lucida Console", Monaco, ui-monospace, monospace;
+  --font-body-md: "Courier New", "Lucida Console", Monaco, ui-monospace, monospace;
 
   --text-body-lg: 18px;
   --text-body-lg--line-height: 1.6;
@@ -101,7 +101,18 @@
 }
 
 .material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-body-md);
+  font-smooth: never;
+  -webkit-font-smoothing: none;
 }
 
 .glow-primary {
