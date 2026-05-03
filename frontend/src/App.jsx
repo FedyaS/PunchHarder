@@ -3,6 +3,7 @@ import { LiveCamera } from './components/LiveCamera'
 import Analysis from './pages/Analysis'
 import Replay from './pages/Replay'
 import Label from './pages/Label'
+import Classify from './pages/Classify'
 import MarketingHomePage from './pages/MarketingHomePage.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
 import LiveAnalysisPage from './pages/LiveAnalysisPage.jsx'
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/replay" element={<Replay />} />
         <Route path="/analysis" element={<Analysis />} />
         <Route path="/label" element={<Label />} />
+        <Route path="/classify" element={<Classify />} />
         <Route path="/session" element={<SessionSummaryPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

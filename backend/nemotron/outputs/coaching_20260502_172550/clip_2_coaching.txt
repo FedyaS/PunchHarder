@@ -1,0 +1,33 @@
+# Guard & Stance
+- Keep your elbows tucked close to the body and maintain a high guard throughout.  
+- Your feet are slightly too wide; narrow the stance for better balance and quicker weight transfer.
+
+# Hip Rotation & Power
+- The three crosses (152‑442 ms, 2211‑2295 ms, 6154‑6398 ms) show solid hip drive, but the second cross lacks full rotation, reducing power.  
+- Engage the hips more aggressively on each punch, especially the jab‑heavy sequences, to generate maximum force.
+
+# Jab Technique
+- You threw five jabs (1289‑2064 ms, 2735‑3156 ms, 3569‑3782 ms, 5395‑5840 ms, 8580‑8707 ms).  
+- Focus on snapping the jab from the shoulder rather than the wrist; keep the lead hand relaxed until the moment of impact.  
+- The later jabs (after 5 s) show a slight drop in speed—maintain consistent tempo by resetting the guard quickly after each jab.
+
+# Hook Execution
+- Two hooks (2418‑2590 ms, 7536‑8174 ms) were thrown.  
+- The first hook is well‑timed with good hip turn, but the second hook drifts outward, reducing accuracy.  
+- Keep the elbow at a 90‑degree angle and pivot the back foot to stay centered on the target.
+
+# Uppercut Quality
+- The single uppercut (4073‑4813 ms) shows decent height but the punch is a bit telegraphed.  
+- Drop the lead shoulder slightly and drive from the legs to make the uppercut tighter and more surprising.
+
+# Rhythm & Flow
+- The rhythm is uneven; after the initial burst (cross‑jab‑cross) the pace slows, then spikes again during the jab series.  
+- Work on a steady “bounce” between punches: inhale on the reset, exhale on the strike. This will smooth out the transitions and keep the opponent guessing.
+
+# Balance & Footwork
+- Your balance wavers during the longer jab sequences (e.g., 2735‑3156 ms).  
+- Practice stepping forward with the lead foot while keeping the rear foot planted, then quickly returning to the center after each combination.
+
+# Summary
+- Overall, you have the raw power for the crosses and uppercut, but refine hip rotation, tighten the guard, and maintain a consistent rhythm.  
+- Focus on snapping jabs, pivoting for hooks, and keeping the feet moving to stay balanced throughout the round.
