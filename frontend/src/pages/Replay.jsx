@@ -40,18 +40,21 @@ function splitCoachingSections(text) {
   }))
 }
 
-/** Canonical Nemotron anchor: @2188ms-2649ms (after normalize) */
+/** Canonical Nemotron anchor (seconds): @2.188s-2.649s (after normalize) */
+const CANON_RANGE_S = /@(\d+(?:\.\d+)?)s-(\d+(?:\.\d+)?)s/gi
+
+/** Legacy Nemotron anchor (ms): @2188ms-2649ms — still parsed for older coaching files */
 const CANON_RANGE_MS = /@(\d{2,7})ms-(\d{2,7})ms/gi
 
 /** Legacy prose ranges: 2188-2649 ms (still parsed for older coaching files) */
 const LEGACY_RANGE_MS = /(\d{2,7})\s*-\s*(\d{2,7})\s*ms/gi
 
 /**
- * All distinct [startMs, endMs] intervals in a section body.
- * Prefers @startms-endms tokens; then scans remainder for legacy `a - b ms`.
+ * All distinct [startMs, endMs] intervals in a chunk of coaching text (heading and/or body).
+ * Prefers @starts-ends tokens; then @startms-endms; then legacy `a - b ms` prose.
  */
-function extractRangesFromBody(body) {
-  const norm = normalizeCoachingText(body)
+function extractRangesFromText(text) {
+  const norm = normalizeCoachingText(text || '')
   const seen = new Set()
   const ranges = []
   const add = (a, b) => {
@@ -64,12 +67,18 @@ function extractRangesFromBody(body) {
   }
 
   let m
-  const canon = new RegExp(CANON_RANGE_MS.source, CANON_RANGE_MS.flags)
-  while ((m = canon.exec(norm)) !== null) {
+  const canonS = new RegExp(CANON_RANGE_S.source, CANON_RANGE_S.flags)
+  while ((m = canonS.exec(norm)) !== null) {
+    add(Math.round(parseFloat(m[1]) * 1000), Math.round(parseFloat(m[2]) * 1000))
+  }
+
+  const canonMs = new RegExp(CANON_RANGE_MS.source, CANON_RANGE_MS.flags)
+  while ((m = canonMs.exec(norm)) !== null) {
     add(parseInt(m[1], 10), parseInt(m[2], 10))
   }
 
-  const stripped = norm.replace(new RegExp(CANON_RANGE_MS.source, 'gi'), ' ')
+  let stripped = norm.replace(new RegExp(CANON_RANGE_S.source, 'gi'), ' ')
+  stripped = stripped.replace(new RegExp(CANON_RANGE_MS.source, 'gi'), ' ')
   const legacy = new RegExp(LEGACY_RANGE_MS.source, LEGACY_RANGE_MS.flags)
   while ((m = legacy.exec(stripped)) !== null) {
     add(parseInt(m[1], 10), parseInt(m[2], 10))
@@ -78,12 +87,43 @@ function extractRangesFromBody(body) {
   return ranges
 }
 
-/** Plain text for Magpie TTS (Nemotron Voice Agent stack). */
+/** Remove @…s-…s / @…ms-…ms / legacy ms prose — keep in files & UI headings; omit from TTS. */
+function stripCoachingAnchorsForSpeech(text) {
+  if (!text) return ''
+  let s = normalizeCoachingText(String(text))
+  s = s.replace(new RegExp(CANON_RANGE_S.source, 'gi'), '')
+  s = s.replace(new RegExp(CANON_RANGE_MS.source, 'gi'), '')
+  s = s.replace(new RegExp(LEGACY_RANGE_MS.source, 'gi'), '')
+  s = s.replace(/''|""/g, '')
+  s = s.replace(/\s+/g, ' ')
+  s = s.replace(/\s+([.,!?;:])/g, '$1')
+  return s.trim()
+}
+
+/** Plain text for Magpie TTS — spoken label + body only (no timestamp tokens). */
 function buildCoachingSpeechText(issue) {
   if (!issue) return ''
-  const t0 = (issue.startMs / 1000).toFixed(1)
-  const t1 = (issue.endMs / 1000).toFixed(1)
-  return `${issue.category}. Roughly ${t0} to ${t1} seconds in this clip. ${issue.rationale}`.replace(/\s+/g, ' ').trim()
+  const title = stripCoachingAnchorsForSpeech(issue.category)
+  const body = stripCoachingAnchorsForSpeech(issue.rationale)
+  if (!body) return title ? `${title}.` : ''
+  return `${title}. ${body}`.replace(/\s+/g, ' ').trim()
+}
+
+function tokenMatchesRangeMs(text, startMs, endMs, tolMs = 100) {
+  const reS = /@(\d+(?:\.\d+)?)s-(\d+(?:\.\d+)?)s/gi
+  let m
+  while ((m = reS.exec(text)) !== null) {
+    const a = Math.round(parseFloat(m[1]) * 1000)
+    const b = Math.round(parseFloat(m[2]) * 1000)
+    if (Math.abs(a - startMs) <= tolMs && Math.abs(b - endMs) <= tolMs) return true
+  }
+  const reMs = /@(\d+)ms-(\d+)ms/gi
+  while ((m = reMs.exec(text)) !== null) {
+    const a = parseInt(m[1], 10)
+    const b = parseInt(m[2], 10)
+    if (Math.abs(a - startMs) <= tolMs && Math.abs(b - endMs) <= tolMs) return true
+  }
+  return false
 }
 
 function bestRationaleForRange(body, startMs, endMs) {
@@ -91,10 +131,20 @@ function bestRationaleForRange(body, startMs, endMs) {
     .split(/(?<=[.!?])\s+/)
     .map((s) => s.trim())
     .filter(Boolean)
+  for (const s of sentences) {
+    if (tokenMatchesRangeMs(s, startMs, endMs)) return s
+  }
   const sStr = String(startMs)
   const eStr = String(endMs)
   for (const s of sentences) {
     if (s.includes(sStr) && s.includes(eStr)) return s
+  }
+  for (const d of [3, 2, 1]) {
+    const a = (startMs / 1000).toFixed(d)
+    const b = (endMs / 1000).toFixed(d)
+    for (const s of sentences) {
+      if (s.includes(a) && s.includes(b)) return s
+    }
   }
   for (const s of sentences) {
     if (s.includes(sStr)) return s
@@ -103,8 +153,8 @@ function bestRationaleForRange(body, startMs, endMs) {
 }
 
 /**
- * Parsed Nemotron coaching issues: one entry per explicit ms range in the text.
- * Times are ms from the start of this clip (same frame as the replay video).
+ * Parsed Nemotron coaching issues: anchored ranges from section headings (new format) or body (legacy).
+ * Stored as ms from clip start (same frame as the replay video).
  */
 function parseCoachingIssues(raw) {
   if (!raw || !String(raw).trim()) return []
@@ -114,14 +164,34 @@ function parseCoachingIssues(raw) {
   for (const sec of sections) {
     if (sec.heading.toLowerCase().includes('summary')) continue
     const body = sec.body
-    for (const { startMs, endMs } of extractRangesFromBody(body)) {
+    const fromHeading = extractRangesFromText(sec.heading)
+    const fromBody = extractRangesFromText(body)
+    const ranges = fromHeading.length > 0 ? fromHeading : fromBody
+    const useHeadingAnchors = fromHeading.length > 0
+
+    for (const { startMs, endMs } of ranges) {
       n += 1
+      let rationale
+      if (useHeadingAnchors && fromHeading.length === 1 && !fromBody.length) {
+        rationale =
+          body.trim() ||
+          `${stripCoachingAnchorsForSpeech(sec.heading)} (@${(startMs / 1000).toFixed(2)}s–${(endMs / 1000).toFixed(2)}s).`
+      } else if (useHeadingAnchors) {
+        rationale =
+          bestRationaleForRange(body, startMs, endMs) ||
+          body.trim() ||
+          `${stripCoachingAnchorsForSpeech(sec.heading)} (@${(startMs / 1000).toFixed(2)}s–${(endMs / 1000).toFixed(2)}s).`
+      } else {
+        rationale =
+          bestRationaleForRange(body, startMs, endMs) ||
+          `${sec.heading} (@${(startMs / 1000).toFixed(2)}s–${(endMs / 1000).toFixed(2)}s).`
+      }
       issues.push({
         id: `coach-${n}`,
         category: sec.heading,
         startMs,
         endMs,
-        rationale: bestRationaleForRange(body, startMs, endMs) || `${sec.heading} (@${startMs}ms-${endMs}ms).`,
+        rationale,
       })
     }
   }
