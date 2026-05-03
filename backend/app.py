@@ -1,18 +1,17 @@
 import os
 import json
 import glob
+import traceback
 from datetime import datetime
 
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
-
-from punch_classifier import classify_punch_windows
+from dotenv import load_dotenv
 from pathlib import Path
 
-from flask import Flask, jsonify, request, Response
-from flask_cors import CORS
-from dotenv import load_dotenv
+from punch_classifier import classify_punch_windows
+from session_pipeline import process_session_clip
 
 _backend_dir = Path(__file__).resolve().parent
 _repo_root = _backend_dir.parent
@@ -305,5 +304,170 @@ def eval_frame(filename):
     return send_from_directory(frames_dir, filename, mimetype="image/jpeg")
 
 
+@app.route("/api/live/session-clip", methods=["POST"])
+def session_clip():
+    """
+    Full pipeline for one session clip:
+    webm upload → mp4 → YOLO classify → Nemotron coaching → TTS.
+    """
+    video = request.files.get("video")
+    labels_raw = request.form.get("labels")
+
+    if video is None:
+        return jsonify({"error": "missing multipart video file"}), 400
+    if not labels_raw:
+        return jsonify({"error": "missing labels JSON form field"}), 400
+
+    try:
+        labels = json.loads(labels_raw)
+    except json.JSONDecodeError as exc:
+        return jsonify({"error": f"invalid labels JSON: {exc.msg}"}), 400
+
+    session_id = secure_filename(
+        str(labels.get("session_id") or request.form.get("session_id")
+            or datetime.utcnow().strftime("session_%Y%m%d_%H%M%S"))
+    )
+    clip_index = int(labels.get("clip_index", request.form.get("clip_index", 0)))
+
+    session_dir = os.path.join(LIVE_SESSIONS, session_id)
+    clips_dir = os.path.join(session_dir, "clips")
+    os.makedirs(clips_dir, exist_ok=True)
+
+    webm_path = os.path.join(clips_dir, f"clip_{clip_index}.webm")
+    video.save(webm_path)
+
+    raw_labels_dir = os.path.join(session_dir, "raw_labels")
+    os.makedirs(raw_labels_dir, exist_ok=True)
+    with open(os.path.join(raw_labels_dir, f"clip_{clip_index}_labels.json"), "w", encoding="utf-8") as f:
+        json.dump(labels, f, indent=2)
+
+    try:
+        result = process_session_clip(session_dir, clip_index, webm_path, labels)
+    except Exception as exc:
+        traceback.print_exc()
+        return jsonify({"error": str(exc)}), 500
+
+    return jsonify({
+        "status": "ok",
+        "session_id": session_id,
+        "clip_index": clip_index,
+        "classified_labels": result["classified_labels"],
+        "coaching_sections": result["coaching_sections"],
+        "coaching_raw_markdown": result["coaching_raw_markdown"],
+        "timings": result.get("timings"),
+        "mock_mode": result.get("mock_mode", False),
+    })
+
+
+@app.route("/api/live/session-resend/<session_id>", methods=["POST"])
+def session_resend(session_id):
+    """Re-run the pipeline on already-saved clips from a previous session."""
+    session_id = secure_filename(session_id)
+    session_dir = os.path.join(LIVE_SESSIONS, session_id)
+    if not os.path.isdir(session_dir):
+        return jsonify({"error": f"session {session_id} not found"}), 404
+
+    clips_dir = os.path.join(session_dir, "clips")
+    raw_labels_dir = os.path.join(session_dir, "raw_labels")
+
+    results = []
+    for clip_file in sorted(os.listdir(clips_dir)):
+        if not clip_file.endswith(".webm"):
+            continue
+        clip_index = int(clip_file.replace("clip_", "").replace(".webm", ""))
+        webm_path = os.path.join(clips_dir, clip_file)
+
+        labels_path = os.path.join(raw_labels_dir, f"clip_{clip_index}_labels.json")
+        if os.path.isfile(labels_path):
+            with open(labels_path, "r", encoding="utf-8") as f:
+                labels = json.load(f)
+        else:
+            labels = {"session_id": session_id, "clip_index": clip_index, "punches": []}
+
+        try:
+            result = process_session_clip(session_dir, clip_index, webm_path, labels)
+            results.append({
+                "status": "ok",
+                "clip_index": clip_index,
+                "classified_labels": result["classified_labels"],
+                "coaching_sections": result["coaching_sections"],
+                "coaching_raw_markdown": result["coaching_raw_markdown"],
+                "timings": result.get("timings"),
+                "mock_mode": result.get("mock_mode", False),
+            })
+        except Exception as exc:
+            traceback.print_exc()
+            results.append({"clip_index": clip_index, "error": str(exc)})
+
+    return jsonify({"session_id": session_id, "clips": results})
+
+
+@app.route("/api/live/sessions")
+def list_sessions():
+    """List available saved sessions for resending."""
+    if not os.path.isdir(LIVE_SESSIONS):
+        return jsonify([])
+    sessions = []
+    for name in sorted(os.listdir(LIVE_SESSIONS), reverse=True):
+        session_dir = os.path.join(LIVE_SESSIONS, name)
+        if not os.path.isdir(session_dir):
+            continue
+        clips_dir = os.path.join(session_dir, "clips")
+        webm_count = len([f for f in os.listdir(clips_dir) if f.endswith(".webm")]) if os.path.isdir(clips_dir) else 0
+        if webm_count > 0:
+            sessions.append({"session_id": name, "clip_count": webm_count})
+    return jsonify(sessions)
+
+
+@app.route("/api/live/session/<session_id>/video/<int:clip_index>")
+def session_video(session_id, clip_index):
+    """Serve an mp4 clip with HTTP range-request support."""
+    session_id = secure_filename(session_id)
+    video_path = os.path.join(LIVE_SESSIONS, session_id, "clips", f"clip_{clip_index}.mp4")
+    if not os.path.exists(video_path):
+        return jsonify({"error": "clip not found"}), 404
+
+    file_size = os.path.getsize(video_path)
+    range_header = request.headers.get("Range")
+
+    if range_header:
+        byte_start = int(range_header.replace("bytes=", "").split("-")[0])
+        byte_end = file_size - 1
+        length = byte_end - byte_start + 1
+
+        with open(video_path, "rb") as f:
+            f.seek(byte_start)
+            data = f.read(length)
+
+        resp = Response(data, 206, mimetype="video/mp4")
+        resp.headers["Content-Range"] = f"bytes {byte_start}-{byte_end}/{file_size}"
+        resp.headers["Accept-Ranges"] = "bytes"
+        resp.headers["Content-Length"] = str(length)
+        return resp
+
+    with open(video_path, "rb") as f:
+        data = f.read()
+    resp = Response(data, 200, mimetype="video/mp4")
+    resp.headers["Accept-Ranges"] = "bytes"
+    resp.headers["Content-Length"] = str(file_size)
+    return resp
+
+
+@app.route("/api/live/session/<session_id>/tts/<int:clip_index>/<int:section_index>")
+def session_tts(session_id, clip_index, section_index):
+    """Serve a TTS WAV file for a coaching section."""
+    session_id = secure_filename(session_id)
+    wav_path = os.path.join(
+        LIVE_SESSIONS, session_id, "tts",
+        f"clip_{clip_index}_section_{section_index}.wav",
+    )
+    if not os.path.exists(wav_path):
+        return jsonify({"error": "audio not found"}), 404
+
+    with open(wav_path, "rb") as f:
+        data = f.read()
+    return Response(data, 200, mimetype="audio/wav")
+
+
 if __name__ == "__main__":
-    app.run(debug=True, port=4000)
+    app.run(debug=True, port=4000, threaded=True)

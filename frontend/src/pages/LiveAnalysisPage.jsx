@@ -1,13 +1,29 @@
 import { useCallback, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { DebugPanel } from '../components/DebugPanel.jsx'
 import { LiveCamera } from '../components/LiveCamera.jsx'
+import { RoundResults } from '../components/RoundResults.jsx'
 import { useLivePunchClassifier } from '../hooks/useLivePunchClassifier.js'
+import { useSessionRound } from '../hooks/useSessionRound.js'
 
 export default function LiveAnalysisPage({ embedded = false }) {
   const liveCameraRef = useRef(null)
   const { classifyClip, error: classifierError, status: classifierStatus } = useLivePunchClassifier()
   const [classifiedPunches, setClassifiedPunches] = useState([])
   const [metrics, setMetrics] = useState(null)
+
+  const {
+    phase,
+    countdown,
+    timeLeft,
+    clipIndex: sessionClipIndex,
+    sessionId,
+    results: sessionResults,
+    error: sessionError,
+    startRound,
+    resetSession,
+  } = useSessionRound({ liveCameraRef })
+
   const handleMetrics = useCallback((next) => {
     setMetrics(next)
   }, [])
@@ -61,7 +77,7 @@ export default function LiveAnalysisPage({ embedded = false }) {
       )}
 
       <main className={embedded ? 'grid gap-6' : 'flex-grow flex flex-col lg:flex-row h-[calc(100vh-144px)] lg:h-[calc(100vh-72px)] overflow-hidden'}>
-        {!embedded && (
+        {!embedded && phase !== 'results' && (
         <aside className="hidden lg:flex flex-col p-4 sticky left-0 bg-surface-container-low w-64 border-r border-surface-container-highest font-headline-md self-start h-full">
           <div className="text-primary font-black text-xl mb-8">SESSION LIVE</div>
           <nav className="flex flex-col gap-2 font-label-bold">
@@ -98,19 +114,38 @@ export default function LiveAnalysisPage({ embedded = false }) {
         </aside>
         )}
 
+        {/* ---- Full results screen ---- */}
+        {phase === 'results' && sessionResults ? (
+          <section className="flex-grow overflow-y-auto bg-background">
+            <RoundResults sessionResults={sessionResults} onNewRound={resetSession} />
+            {sessionError && (
+              <p className="text-error text-xs text-center pb-4">{sessionError}</p>
+            )}
+          </section>
+        ) : (
         <section className={embedded ? 'relative flex aspect-video min-h-[520px] w-full flex-col overflow-hidden rounded-2xl border border-surface-container-highest bg-black' : 'flex-grow relative bg-black flex flex-col min-h-[40vh]'}>
           <div className="flex-grow relative overflow-hidden group min-h-0 flex flex-col">
             <LiveCamera ref={liveCameraRef} embedded onMetrics={handleMetrics} className="min-h-[280px] flex-1" />
+
+            {/* --- Status badges (top-left) --- */}
             <div className="pointer-events-none absolute top-8 left-8 z-30 flex flex-col gap-2">
               <div className="bg-surface-container-low/80 backdrop-blur-md px-4 py-2 border-l-4 border-primary flex items-center gap-2">
                 <span
                   className={`w-2 h-2 rounded-full ${metrics?.isLive ? 'bg-error animate-pulse' : 'bg-on-surface-variant'}`}
                 />
                 <span className="font-label-bold text-[10px] text-on-surface uppercase tracking-widest">
-                  {metrics?.isLive ? 'LIVE ANALYSIS ACTIVE' : 'LIVE ANALYSIS STANDBY'}
+                  {phase === 'recording'
+                    ? `REC · CLIP ${sessionClipIndex + 1}/3`
+                    : phase === 'countdown'
+                      ? 'GET READY'
+                      : phase === 'processing'
+                        ? 'ANALYZING'
+                        : metrics?.isLive
+                          ? 'LIVE ANALYSIS ACTIVE'
+                          : 'LIVE ANALYSIS STANDBY'}
                 </span>
               </div>
-              {metrics?.isLive && (
+              {metrics?.isLive && phase === 'idle' && (
                 <div className="bg-surface-container-low/80 backdrop-blur-md px-4 py-2 border-l-4 border-primary/60 flex items-center gap-2 pointer-events-auto">
                   <span className="font-label-bold text-[10px] text-on-surface-variant uppercase tracking-widest">
                     Poses in frame:{' '}
@@ -118,7 +153,7 @@ export default function LiveAnalysisPage({ embedded = false }) {
                   </span>
                 </div>
               )}
-              {classifierStatus !== 'idle' && (
+              {classifierStatus !== 'idle' && phase === 'idle' && (
                 <div className="bg-surface-container-low/80 backdrop-blur-md px-4 py-2 border-l-4 border-secondary/70 flex items-center gap-2 pointer-events-auto">
                   <span className="font-label-bold text-[10px] text-on-surface-variant uppercase tracking-widest">
                     Model: <span className="font-mono text-secondary">{classifierStatus}</span>
@@ -126,32 +161,102 @@ export default function LiveAnalysisPage({ embedded = false }) {
                 </div>
               )}
             </div>
-            <div className="absolute bottom-12 left-1/2 z-20 -translate-x-1/2 w-full max-w-xl px-4 pointer-events-none">
-              <div className="bg-primary-container text-on-primary-container p-6 flex items-center justify-between shadow-2xl rounded-lg border border-primary/20">
-                <div className="flex items-center gap-4">
-                  <span className="material-symbols-outlined text-4xl text-primary">fitness_center</span>
-                  <div>
-                    <div className="font-headline-md text-xl uppercase leading-none mb-1 font-semibold">Punch Count</div>
-                    <div className="font-body-md text-xs opacity-70">Detected punches in this live session.</div>
+
+            {/* --- Countdown overlay --- */}
+            {phase === 'countdown' && (
+              <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="text-[120px] font-black text-primary leading-none tabular-nums animate-pulse">
+                    {countdown}
                   </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="font-headline-display text-5xl text-primary font-extrabold">
-                    {metrics?.punchCount ?? 0}
+                  <div className="font-headline-md text-xl uppercase tracking-widest text-on-surface">
+                    Get ready to punch!
                   </div>
-                  <button
-                    type="button"
-                    className="pointer-events-auto rounded-lg border border-primary/30 bg-surface-container-low/80 p-2 text-on-surface-variant backdrop-blur-md transition-all hover:bg-error-container hover:text-on-error-container active:scale-90"
-                    title="Reset punch count"
-                    onClick={() => liveCameraRef.current?.resetPunchCount()}
-                  >
-                    <span className="material-symbols-outlined text-xl">restart_alt</span>
-                  </button>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* --- Recording timer bar --- */}
+            {phase === 'recording' && (
+              <div className="absolute top-8 right-8 z-40 flex flex-col items-end gap-2">
+                <div className="bg-error/90 backdrop-blur-md px-5 py-3 rounded-lg flex items-center gap-3 shadow-2xl">
+                  <span className="w-3 h-3 rounded-full bg-white animate-pulse" />
+                  <span className="font-headline-md text-2xl text-white tabular-nums font-black">
+                    {(timeLeft / 1000).toFixed(1)}s
+                  </span>
+                </div>
+                <div className="bg-surface-container-low/80 backdrop-blur-md px-4 py-2 rounded-lg">
+                  <span className="font-label-bold text-xs text-on-surface uppercase tracking-widest">
+                    Punches:{' '}
+                    <span className="text-primary font-black text-lg">{metrics?.punchCount ?? 0}</span>
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* --- Processing overlay --- */}
+            {phase === 'processing' && (
+              <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                <div className="flex flex-col items-center gap-6">
+                  <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                  <div className="font-headline-md text-xl uppercase tracking-widest text-on-surface">
+                    Analyzing your round...
+                  </div>
+                  <div className="font-body-md text-sm text-on-surface-variant">
+                    Running YOLO classification + Nemotron coaching
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* --- Idle: punch count bar + start round button --- */}
+            {phase === 'idle' && (
+              <div className="absolute bottom-12 left-1/2 z-20 -translate-x-1/2 w-full max-w-xl px-4 pointer-events-none">
+                <div className="bg-primary-container text-on-primary-container p-6 flex items-center justify-between shadow-2xl rounded-lg border border-primary/20">
+                  <div className="flex items-center gap-4">
+                    <span className="material-symbols-outlined text-4xl text-primary">fitness_center</span>
+                    <div>
+                      <div className="font-headline-md text-xl uppercase leading-none mb-1 font-semibold">Punch Count</div>
+                      <div className="font-body-md text-xs opacity-70">Detected punches in this live session.</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="font-headline-display text-5xl text-primary font-extrabold">
+                      {metrics?.punchCount ?? 0}
+                    </div>
+                    <button
+                      type="button"
+                      className="pointer-events-auto rounded-lg border border-primary/30 bg-surface-container-low/80 p-2 text-on-surface-variant backdrop-blur-md transition-all hover:bg-error-container hover:text-on-error-container active:scale-90"
+                      title="Reset punch count"
+                      onClick={() => liveCameraRef.current?.resetPunchCount()}
+                    >
+                      <span className="material-symbols-outlined text-xl">restart_alt</span>
+                    </button>
+                  </div>
+                </div>
+
+                {metrics?.isLive && (
+                  <button
+                    type="button"
+                    className="pointer-events-auto mt-4 w-full bg-error text-on-error py-4 rounded-lg font-label-bold text-sm uppercase tracking-[0.3em] shadow-2xl transition-all hover:opacity-90 active:scale-[0.98]"
+                    onClick={startRound}
+                  >
+                    <span className="material-symbols-outlined align-middle mr-2 text-lg">sports_mma</span>
+                    Start 15s Round
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* --- Error toast --- */}
+            {sessionError && phase !== 'results' && (
+              <div className="absolute bottom-4 left-4 right-4 z-50 bg-error-container/95 border border-error/40 rounded-lg px-4 py-2 font-label-bold text-[11px] text-on-error-container">
+                {sessionError}
+              </div>
+            )}
           </div>
         </section>
+        )}
 
       </main>
 
@@ -190,6 +295,15 @@ export default function LiveAnalysisPage({ embedded = false }) {
         </div>
       </footer>
       )}
+
+      <DebugPanel
+        phase={phase}
+        sessionId={sessionId}
+        clipIndex={sessionClipIndex}
+        metrics={metrics}
+        sessionResults={sessionResults}
+        sessionError={sessionError}
+      />
     </div>
   )
 }

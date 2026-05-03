@@ -65,9 +65,11 @@ export const LiveCamera = forwardRef(function LiveCamera(
   const { error, isLive, startCamera, status, stopCamera, stream, videoRef } = useWebcam()
   const {
     error: trackingError,
+    getPunchEvents,
     poseCount,
     punchCount,
     resetPunchCount,
+    setClipStartTime,
     status: trackingStatus,
   } = usePoseLandmarker({
     canvasRef,
@@ -99,10 +101,13 @@ export const LiveCamera = forwardRef(function LiveCamera(
       startCamera,
       stopCamera,
       resetPunchCount,
+      getPunchEvents,
+      setClipStartTime,
+      getStream: () => stream,
       isLive,
       status,
     }),
-    [startCamera, stopCamera, resetPunchCount, isLive, status],
+    [startCamera, stopCamera, resetPunchCount, getPunchEvents, setClipStartTime, stream, isLive, status],
   )
 
   useEffect(() => {

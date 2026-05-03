@@ -1,4 +1,3 @@
-import Replay from './pages/Replay'
 import LiveAnalysisPage from './pages/LiveAnalysisPage.jsx'
 
 export default function App() {
@@ -36,7 +35,6 @@ export default function App() {
         </header>
 
         <LiveAnalysisPage embedded />
-        <Replay embedded />
       </div>
     </main>
   )

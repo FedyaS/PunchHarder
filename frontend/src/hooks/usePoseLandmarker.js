@@ -88,9 +88,11 @@ function getCompositeDist(poseLandmarks, side, scale) {
 
 export function usePoseLandmarker({ canvasRef, enabled, videoRef }) {
   const animationFrameRef = useRef(null)
+  const clipStartTimeRef = useRef(null)
   const drawingUtilsRef = useRef(null)
   const landmarkerRef = useRef(null)
   const lastVideoTimeRef = useRef(-1)
+  const punchEventsRef = useRef([])
   const punchStateRef = useRef(createPunchState())
   const smoothedScaleRef = useRef(null)
   const [error, setError] = useState('')
@@ -100,8 +102,20 @@ export function usePoseLandmarker({ canvasRef, enabled, videoRef }) {
 
   const resetPunchCount = useCallback(() => {
     punchStateRef.current = createPunchState()
+    punchEventsRef.current = []
+    clipStartTimeRef.current = performance.now()
     smoothedScaleRef.current = null
     setPunchCount(0)
+  }, [])
+
+  const getPunchEvents = useCallback(() => {
+    const events = punchEventsRef.current
+    punchEventsRef.current = []
+    return events
+  }, [])
+
+  const setClipStartTime = useCallback(() => {
+    clipStartTimeRef.current = performance.now()
   }, [])
 
   useEffect(() => {
@@ -225,6 +239,12 @@ export function usePoseLandmarker({ canvasRef, enabled, videoRef }) {
 
           if ((fallen > DISTANCE_FALL_THRESHOLD || stalled) && gain >= MIN_PUNCH_DISTANCE_GAIN) {
             setPunchCount((c) => c + 1)
+            const clipOffset = clipStartTimeRef.current ?? 0
+            punchEventsRef.current.push({
+              start_ms: arm.punchStartTime - clipOffset,
+              end_ms: now - clipOffset,
+              side,
+            })
             console.log(`${side} punch`, {
               start: arm.punchStartTime,
               end: now,
@@ -313,6 +333,7 @@ export function usePoseLandmarker({ canvasRef, enabled, videoRef }) {
       }
       lastVideoTimeRef.current = -1
       clearCanvas()
+      punchEventsRef.current = []
       punchStateRef.current = createPunchState()
       smoothedScaleRef.current = null
     }
@@ -327,5 +348,5 @@ export function usePoseLandmarker({ canvasRef, enabled, videoRef }) {
     }
   }, [])
 
-  return { error, poseCount, punchCount, resetPunchCount, status }
+  return { error, getPunchEvents, poseCount, punchCount, resetPunchCount, setClipStartTime, status }
 }
