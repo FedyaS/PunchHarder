@@ -50,17 +50,18 @@ export const LiveCamera = forwardRef(function LiveCamera(
       error,
       isLive,
       poseCount,
+      punchCount,
       status,
       trackingError,
       trackingStatus,
     })
-  }, [error, isLive, onMetrics, poseCount, status, trackingError, trackingStatus])
+  }, [error, isLive, onMetrics, poseCount, punchCount, status, trackingError, trackingStatus])
 
   const videoStack = (
     <>
       <video
         ref={videoRef}
-        className="h-full w-full scale-x-[-1] object-cover"
+        className="absolute inset-0 h-full w-full scale-x-[-1] object-cover"
         muted
         playsInline
       />
