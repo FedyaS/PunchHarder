@@ -912,6 +912,6 @@ export default function Replay({ embedded = false }) {
           />
         )}
       </div>
-    </section>
+    </div>
   )
 }
